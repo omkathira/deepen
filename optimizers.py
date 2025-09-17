@@ -20,14 +20,7 @@ class SGD(Optimizer):
             if param.grad is not None:
                 param.data = param.data - self.lr * param.grad
 
-class Adagrad(Optimizer):
-    def __init__(self, params):
-        super.__init__(params)
-    
-    def step(self):
-        pass
-
-class RMSProp(Optimizer):
+class SGD_with_momentum(Optimizer):
     def __init__(self, params):
         super.__init__(params)
     
@@ -48,10 +41,10 @@ class Adam(Optimizer):
         self.t += 1
         for i, param in enumerate(self.params):
             if param.grad is not None:
-                gt = param.grad
+                g_t = param.grad
 
-                self.m[i] = self.beta1 * self.m[i] + (1 - self.beta1) * gt # first moment estimate (mean)
-                self.v[i] = self.beta2 * self.v[i] + (1 - self.beta2) * (gt ** 2) # second moment estimate (variance)
+                self.m[i] = self.beta1 * self.m[i] + (1 - self.beta1) * g_t # momentum updates
+                self.v[i] = self.beta2 * self.v[i] + (1 - self.beta2) * (g_t ** 2) # variance in momentum updates
 
                 # bias correction
                 m_hat = self.m[i] / (1 - self.beta1 ** self.t)

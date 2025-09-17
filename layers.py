@@ -8,7 +8,7 @@ class Layer:
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name, value): 
         if isinstance(value, Layer): # register layers, essentially registers layer l + 1 as a child of layer l
             self._layers[name] = value
         elif isinstance(value, Tensor) and value.requires_grad: # register parameters

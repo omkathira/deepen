@@ -1,13 +1,17 @@
 from deepen.core.tensor import Tensor
 
-def mse(pred: Tensor, true: Tensor): return ((pred - true) ** 2).mean()
+def mse(pred: Tensor, true: Tensor):
+    loss = ((pred - true) ** 2).mean()
+    return loss
 
-def mae(pred: Tensor, true: Tensor): return (pred - true).abs().mean()
+def mae(pred: Tensor, true: Tensor):
+    loss = (pred - true).abs().mean()
+    return loss
 
 def binary_cross_entropy(pred: Tensor, true: Tensor, epsilon=1e-7):
     p = pred.clip(epsilon, 1 - epsilon)
-    loss = -(true * p.log() + (1 - true) * (1 - p).log())
-    return loss.mean()
+    loss = -(true * p.log() + (1 - true) * (1 - p).log()).mean()
+    return loss
 
 def cross_entropy(logits: Tensor, labels: Tensor):
     shifted_logits = logits - logits.max(axes=0) # subtract max for numerical stability

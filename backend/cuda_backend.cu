@@ -1,5 +1,5 @@
 #include <math.h>
-#include <cublas_v2.h>
+#include <cudnn.h>
 #include <cuda_runtime.h>
 
 // Element-wise addition
@@ -193,3 +193,4 @@ __global__ void sign_T(T const* __restrict__ x, T* __restrict__ output, int N) {
     } // end for loop
 } // end sign_T
 
+// 

@@ -1,5 +1,5 @@
 from deepen.backend import active_backend as bx
-from deepen.ops.utils import reduce_grad # handles broadcasting for backward passes
+from deepen.ops.utils import _reduce_grad # handles broadcasting for backward passes
 
 _bx = bx() # backend singleton
 
@@ -13,8 +13,8 @@ class add:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(output_grad, save.x_shape)
-        dy = reduce_grad(output_grad, save.y_shape)
+        dx = _reduce_grad(output_grad, save.x_shape)
+        dy = _reduce_grad(output_grad, save.y_shape)
         return dx, dy
 
 # Element-wise subtraction
@@ -27,8 +27,8 @@ class sub:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(output_grad, save.x_shape)
-        dy = reduce_grad(_bx.multiply(output_grad, -1), save.y_shape)
+        dx = _reduce_grad(output_grad, save.x_shape)
+        dy = _reduce_grad(_bx.multiply(output_grad, -1), save.y_shape)
         return dx, dy
     
 # Element-wise multiplication
@@ -42,8 +42,8 @@ class mul:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(output_grad, save.y), save.x_shape)
-        dy = reduce_grad(_bx.multiply(output_grad, save.x), save.y_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, save.y), save.x_shape)
+        dy = _reduce_grad(_bx.multiply(output_grad, save.x), save.y_shape)
         return dx, dy
 
 # Element-wise division
@@ -57,8 +57,8 @@ class div:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.divide(output_grad, save.y), save.x_shape)
-        dy = reduce_grad(_bx.divide(_bx.multiply(_bx.multiply(output_grad, -1), save.x), _bx.pow(save.y, 2)), save.y_shape)
+        dx = _reduce_grad(_bx.divide(output_grad, save.y), save.x_shape)
+        dy = _reduce_grad(_bx.divide(_bx.multiply(_bx.multiply(output_grad, -1), save.x), _bx.pow(save.y, 2)), save.y_shape)
         return dx, dy
 
 # Negation
@@ -71,7 +71,7 @@ class neg:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(output_grad, -1), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, -1), save.x_shape)
         return dx,
 
 # Absolute value
@@ -84,7 +84,7 @@ class abs_:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(output_grad, _bx.sign(save.x)), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, _bx.sign(save.x)), save.x_shape)
         return dx,
 
 # Power (handles roots)
@@ -98,7 +98,7 @@ class pow_:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(_bx.multiply(save.n, _bx.power(save.x, save.n - 1)), output_grad), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(_bx.multiply(save.n, _bx.power(save.x, save.n - 1)), output_grad), save.x_shape)
         return dx,
 
 # Exponentiation
@@ -112,7 +112,7 @@ class exp:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(output_grad, save.output), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, save.output), save.x_shape)
         return dx,
 
 # Logarithm
@@ -128,7 +128,7 @@ class log:
     
     @staticmethod
     def backward(save, output_grad):
-        dx = reduce_grad(_bx.multiply(output_grad, _bx.divide(1, _bx.multiply(save.x, save.log_base_tensor))), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, _bx.divide(1, _bx.multiply(save.x, save.log_base_tensor))), save.x_shape)
         return dx, None
 
 # Clip
@@ -143,5 +143,5 @@ class clip:
     @staticmethod
     def backward(save, output_grad):
         mask = (save.x >= save.min_val) & (save.x <= save.max_val)
-        dx = reduce_grad(_bx.multiply(output_grad, mask.astype(save.x.dtype)), save.x_shape) # preserve dtype when applying mask
+        dx = _reduce_grad(_bx.multiply(output_grad, mask.astype(save.x.dtype)), save.x_shape) # preserve dtype when applying mask
         return dx, None, None

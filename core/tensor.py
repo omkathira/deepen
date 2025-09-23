@@ -1,9 +1,10 @@
 from numbers import Number
 from deepen.backend import active_backend as bx
 from deepen.ops.ewise_ops import *
-from deepen.ops.linalg_ops import *
+from deepen.ops.logical_ops import *
 from deepen.ops.reduce_ops import *
 from deepen.ops.shape_ops import *
+from deepen.ops.linalg_ops import *
 from deepen.ops.activation_ops import *
 from deepen.ops.utils import Cache
 
@@ -25,11 +26,14 @@ class Tensor:
         self._save = None # intermediate values stored in an operation class' forward (needed by its backward)
         self._args = None # arguments that are data we pass through the neural network
         self._kwargs = None # arguments that aren't like the above (like axes, shape, etc)
+    
+    def __hash__(self): # __eq__ is a logical operation so we need to define __hash__
+        return id(self)
 
     @property
     def shape(self):
         if self.data is None:
-            raise AttributeError("Cannot access .shape for a Tensor with no data")
+            raise AttributeError("cannot access .shape for a Tensor with no data")
         return self.data.shape
     
     @staticmethod
@@ -48,7 +52,7 @@ class Tensor:
                 arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg)
                 args_list.append((False, arr))
             else:
-                raise ValueError(f"Unexpected positional argument {arg!r} of type {type(arg)}")
+                raise ValueError(f"unexpected positional argument {arg!r} of type {type(arg)}")
 
         parents = tuple(t for is_ph, t in args_list if is_ph) # extract parent Tensors
         requires_grad = any(p.requires_grad for p in parents)
@@ -144,9 +148,16 @@ class Tensor:
     def log(self, base=None): return Tensor._from_op(log, self, base=base)
     def clip(self, min_val, max_val): return Tensor._from_op(clip, self, min_val=min_val, max_val=max_val)
 
-    # Linear algebra operations
-    def matmul(self, other): return Tensor._from_op(matmul, self, other)
-    def outer(self, other): return Tensor._from_op(outer, self, other)
+    # Logical operations
+    def __eq__(self, other): return Tensor._from_op(eq, self, other)
+    def __ne__(self, other): return Tensor._from_op(ne, self, other)
+    def __lt__(self, other): return Tensor._from_op(lt, self, other)
+    def __le__(self, other): return Tensor._from_op(le, self, other)
+    def __gt__(self, other): return Tensor._from_op(gt, self, other)
+    def __ge__(self, other): return Tensor._from_op(ge, self, other)
+    def __invert__(self): return Tensor._from_op(not_, self)
+    def __and__(self, other): return Tensor._from_op(and_, self, other)
+    def __or__(self, other): return Tensor._from_op(or_, self, other)
 
     # Reduction operations
     def sum(self, axes=None): return Tensor._from_op(sum_, self, axes=axes)
@@ -161,6 +172,10 @@ class Tensor:
     def transpose(self, axes=None): return Tensor._from_op(transpose, self, axes=axes)
     def concatenate(self, other, axes=None): return Tensor._from_op(concatenate, self, other, axes=axes)
     def reshape(self, *shape): return Tensor._from_op(reshape, self, shape=shape)
+
+    # Linear algebra operations
+    def matmul(self, other): return Tensor._from_op(matmul, self, other)
+    def outer(self, other): return Tensor._from_op(outer, self, other)
 
     # Activation functions
     def sigmoid(self): return Tensor._from_op(sigmoid, self)

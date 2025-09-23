@@ -1,4 +1,8 @@
+from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor
+from deepen.ops.utils import dropout
+
+_bx = bx() # backend singleton
 
 class Layer:
     def __init__(self):
@@ -36,6 +40,23 @@ class Quadratic(Layer):
     pass
 
 class Dropout(Layer):
+    def __init__(self, p, train=True):
+        super().__init__()
+        if not 0.0 <= p < 1.0:
+            raise ValueError("invalid dropout probability")
+        self.p = p
+        self.train = train
+    
+    def forward(self, t):
+        if self.p == 0.0 or not self.train:
+            return t
+        output = Tensor._from_op(dropout, t, p=self.p)
+        return output
+
+class BatchNorm(Layer):
+    pass
+        
+class LayerNorm(Layer):
     pass
 
-# to-do: normalization layers, convolutional layers, pooling layers
+# soon: convolutional layers, pooling layers

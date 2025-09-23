@@ -3,7 +3,7 @@ from deepen.backend import active_backend as bx
 _bx = bx() # backend singleton
 
 # Broadcasting (for backward)
-def reduce_grad(grad, target_shape):
+def _reduce_grad(grad, target_shape):
     if grad.shape == target_shape:
         return grad
 
@@ -26,9 +26,47 @@ def reduce_grad(grad, target_shape):
 
     return reduced_grad
 
+# Internal helper functions
+def _normalize_axes(x, axes):    
+    if axes is None:
+        return None
+    
+    if len(axes) != len(set(axes)):
+        raise ValueError("recieved duplicate axes")
+    
+    if isinstance(axes, int):
+        axes = (axes,)
+        
+    return tuple(ax if ax >= 0 else ax + x.ndim for ax in axes)
+
+def _count_elements(shape, axes):
+    if axes is None:
+        axes = range(len(shape))
+
+    size = 1
+    for ax in axes:
+        size *= shape[ax]
+
+    return size
+
+# Dropout
+class dropout:
+    @staticmethod
+    def forward(save, x, p):
+        q = save.q = 1.0 - p
+        u = _bx.random.uniform(size=x.shape, low=0.0, high=1.0, dtype=x.dtype)
+        mask = save.mask = _bx.less(u, q).astype(x.dtype)
+        output = _bx.divide(_bx.multiply(x, mask), q)
+        return output
+
+    @staticmethod
+    def backward(save, output_grad):
+        dx = _bx.divide(_bx.multiply(output_grad, save.mask), save.q)
+        return dx,
+
 # Class to hold intermediate values needed for many ops
 class Cache:
-    # Used in most ops (based on relevance, of course)
+    # Used in most ops (based on relevance)
     x: object = None
     x_shape: object = None
 
@@ -49,16 +87,12 @@ class Cache:
     min_val: object = None
     max_val: object = None
 
-    # Only used in reduction ops (again, based on relevance)
-    count: object = None
+    # Only used in reduction ops (based on relevance)
     axes: object = None
     mask: object = None
     out: object = None
 
-    # Only used in mean
-    num_elements: object = None
-
-    # Used in most activations (once again, based on relevance)
+    # Used in most activations (based on relevance)
     output: object = None
 
     # Only used in sigmoid
@@ -66,3 +100,6 @@ class Cache:
 
     # Only used in leaky_relu
     neg_slope: object = None
+
+    # Only used in dropout
+    q: object = None

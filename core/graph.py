@@ -17,7 +17,8 @@ class Graph:
             
             visited.add(t)
             
-            for p in t._parents: traverse(p)
+            for p in t._parents:
+                traverse(p)
 
             topo_order.append(t)
 

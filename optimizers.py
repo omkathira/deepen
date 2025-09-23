@@ -22,7 +22,7 @@ class SGD(Optimizer):
 
 class SGD_with_momentum(Optimizer):
     def __init__(self, params):
-        super.__init__(params)
+        super().__init__(params)
     
     def step(self):
         pass

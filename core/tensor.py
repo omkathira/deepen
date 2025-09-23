@@ -63,33 +63,48 @@ class Tensor:
         return output
 
     # Internal helper functions
-    def _reset_grad(self): self.grad = None
-    def _has_no_parents(self): return True if self._op is None else False
-    def _can_backprop(self): return self.requires_grad and self.grad is not None
-    def _can_receive_grad(self, grad): return self.requires_grad and grad is not None
+    def _reset_grad(self):
+        self.grad = None
+
+    def _has_no_parents(self):
+        return True if self._op is None else False
+
+    def _can_backprop(self):
+        return self.requires_grad and self.grad is not None
+
+    def _can_receive_grad(self, grad):
+        return self.requires_grad and grad is not None
 
     # Exposed helper functions
-    def detach(self): return Tensor(self.data, requires_grad=False)
+    def detach(self):
+        return Tensor(self.data, requires_grad=False)
     
     # Tensor creation/initialization methods
+    @staticmethod
     def zeros(shape, dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.zeros(shape=shape, dtype=dtype), requires_grad=requires_grad)
 
+    @staticmethod
     def ones(shape, dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.ones(shape=shape, dtype=dtype), requires_grad=requires_grad)
-    
+
+    @staticmethod
     def constant(shape, value, dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.full(shape=shape, fill_value=value, dtype=dtype), requires_grad=requires_grad)
     
+    @staticmethod
     def random(shape, dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.random.random(size=shape, dtype=dtype), requires_grad=requires_grad)
     
+    @staticmethod
     def uniform(shape, interval=(0.0, 1.0), dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.random.uniform(size=shape, low=interval[0], high=interval[1], dtype=dtype), requires_grad=requires_grad)
     
+    @staticmethod
     def normal(shape, loc=0.0, scale=1.0, dtype=_bx.float32, requires_grad=False):
         return Tensor(_bx.random.normal(size=shape, loc=loc, scale=scale, dtype=dtype), requires_grad=requires_grad)
     
+    @staticmethod
     def xavier(shape, dist_type="uniform", dtype=_bx.float32, requires_grad=False):
         fan_in, fan_out = shape
 
@@ -101,6 +116,7 @@ class Tensor:
             scale = _bx.sqrt(2 / (fan_in + fan_out))
             return Tensor(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
 
+    @staticmethod
     def he(shape, dist_type="uniform", dtype=_bx.float32, requires_grad=False):
         fan_in, _ = shape
 
@@ -125,11 +141,12 @@ class Tensor:
     def __abs__(self): return Tensor._from_op(abs_, self)
     def __pow__(self, power): return Tensor._from_op(pow_, self, power)
     def exp(self): return Tensor._from_op(exp, self)
-    def log(self, base=_bx.e): return Tensor._from_op(log, self, base=base)
+    def log(self, base=None): return Tensor._from_op(log, self, base=base)
     def clip(self, min_val, max_val): return Tensor._from_op(clip, self, min_val=min_val, max_val=max_val)
 
     # Linear algebra operations
     def matmul(self, other): return Tensor._from_op(matmul, self, other)
+    def outer(self, other): return Tensor._from_op(outer, self, other)
 
     # Reduction operations
     def sum(self, axes=None): return Tensor._from_op(sum_, self, axes=axes)

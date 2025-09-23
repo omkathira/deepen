@@ -22,7 +22,7 @@ class squeeze:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = output_grad.reshape(save.x_shape)
+        dx = _bx.reshape(output_grad, save.x_shape)
         return dx,
 
 # Unsqueeze
@@ -47,7 +47,7 @@ class unsqueeze:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = output_grad.reshape(save.x_shape)
+        dx = _bx.reshape(output_grad, save.x_shape)
         return dx,
 
 # Transpose

@@ -2,7 +2,7 @@ from numbers import Number
 from deepen.backend import active_backend as bx
 from deepen.ops.ewise_ops import *
 from deepen.ops.logical_ops import *
-from deepen.ops.reduce_ops import *
+from deepen.ops.reduction_ops import *
 from deepen.ops.shape_ops import *
 from deepen.ops.linalg_ops import *
 from deepen.ops.activation_ops import *

@@ -37,7 +37,17 @@ class Linear(Layer):
         return output + self.bias if self.bias is not None else output
 
 class Quadratic(Layer):
-    pass
+    def __init__(self, in_feat, out_feat, bias=True):
+        super().__init__()
+        self.quad_weights = Tensor.random((in_feat, in_feat), requires_grad=True)
+        self.lin_weights = Tensor.random((in_feat, out_feat), requires_grad=True)
+        self.bias = Tensor.zeros((1, out_feat), requires_grad=True) if bias else None
+
+    def forward(self, t):
+        quad_output = (t.matmul(self.quad_weights) * t).sum(axes=1).reshape(-1, 1)
+        lin_output = t.matmul(self.lin_weights)
+        output = quad_output + lin_output
+        return output + self.bias if self.bias is not None else output
 
 class Dropout(Layer):
     def __init__(self, p, train=True):

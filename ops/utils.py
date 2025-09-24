@@ -31,11 +31,11 @@ def _normalize_axes(x, axes):
     if axes is None:
         return None
     
-    if len(axes) != len(set(axes)):
-        raise ValueError("recieved duplicate axes")
-    
     if isinstance(axes, int):
         axes = (axes,)
+    
+    if len(axes) != len(set(axes)):
+        raise ValueError("recieved duplicate axes")
         
     return tuple(ax if ax >= 0 else ax + x.ndim for ax in axes)
 
@@ -49,7 +49,7 @@ def _count_elements(shape, axes):
 
     return size
 
-# Dropout
+# Dropout (this is here because I wanted to implement dropout as a layer)
 class dropout:
     @staticmethod
     def forward(save, x, p):

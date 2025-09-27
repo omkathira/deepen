@@ -1,6 +1,6 @@
 from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor
-from deepen.ops.utils import dropout
+from deepen.ops.stochastic_ops import *
 
 _bx = bx() # backend singleton
 

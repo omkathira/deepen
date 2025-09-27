@@ -73,10 +73,10 @@ class Tensor:
     def _has_no_parents(self):
         return True if self._op is None else False
 
-    def _can_backprop(self):
+    def _can_backprop(self): # checks if a tensor can send its gradient to its parents
         return self.requires_grad and self.grad is not None
 
-    def _can_receive_grad(self, grad):
+    def _can_receive_grad(self, grad): # checks if a tensor can recieve a gradient from its child
         return self.requires_grad and grad is not None
 
     # Exposed helper functions

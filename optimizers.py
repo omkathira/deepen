@@ -16,20 +16,24 @@ class SGD(Optimizer):
         self.lr = lr
         self.momentum = momentum
         self.weight_decay = weight_decay
-        self.v = [_bx.zeros_like(p.data) for p in self.params]
+        self.m = {} # momentum
+
+        for param in self.params:
+            self.m[param] = _bx.zeros_like(param.data)
     
     def step(self):
-        for i, param in enumerate(self.params):
+        for param in self.params:
             if param.grad is not None:
-                param_grad = param.grad
+                param_grad = _bx.copy(param.grad) # avoid modifying original gradient in-place
+
                 if self.weight_decay is not None:
                     param_grad += self.weight_decay * param.data # coupled weight decay
 
                 if self.momentum is None:
                     param.data -= self.lr * param_grad
                 else:
-                    self.v[i] = self.momentum * self.v[i] + param_grad
-                    param.data -= self.lr * self.v[i]
+                    self.m[param] = self.momentum * self.m[param] + param_grad
+                    param.data -= self.lr * self.m[param]
 
 class RMSprop(Optimizer):
     def __init__(self, params):
@@ -53,23 +57,28 @@ class Adam(Optimizer):
         self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.t = 0
-        self.m = [_bx.zeros_like(p.data) for p in self.params]
-        self.v = [_bx.zeros_like(p.data) for p in self.params]
+        self.m = {} # momentum
+        self.v = {} # variance
+
+        for param in self.params:
+            self.m[param] = _bx.zeros_like(param.data)
+            self.v[param] = _bx.zeros_like(param.data)
 
     def step(self):
         self.t += 1
-        for i, param in enumerate(self.params):
+        for param in self.params:
             if param.grad is not None:
-                param_grad = param.grad
+                param_grad = _bx.copy(param.grad)
+
                 if self.weight_decay is not None:
                     param_grad += self.weight_decay * param.data
 
-                self.m[i] = self.b1 * self.m[i] + (1 - self.b1) * param_grad # momentum updates
-                self.v[i] = self.b2 * self.v[i] + (1 - self.b2) * (param_grad ** 2) # variance in momentum updates
+                self.m[param] = self.b1 * self.m[param] + (1 - self.b1) * param_grad # momentum updates
+                self.v[param] = self.b2 * self.v[param] + (1 - self.b2) * (param_grad ** 2) # variance in momentum updates
 
                 # bias correction
-                m_cor = self.m[i] / (1 - self.b1 ** self.t)
-                v_cor = self.v[i] / (1 - self.b2 ** self.t)
+                m_cor = self.m[param] / (1 - self.b1 ** self.t)
+                v_cor = self.v[param] / (1 - self.b2 ** self.t)
 
                 param.data -= self.lr * (m_cor / (_bx.sqrt(v_cor) + self.epsilon))
 
@@ -81,21 +90,26 @@ class AdamW(Optimizer):
         self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.t = 0
-        self.m = [_bx.zeros_like(p.data) for p in self.params]
-        self.v = [_bx.zeros_like(p.data) for p in self.params]
+        self.m = {}
+        self.v = {}
+
+        for param in self.params:
+            self.m[param] = _bx.zeros_like(param.data)
+            self.v[param] = _bx.zeros_like(param.data)
 
     def step(self):
         self.t += 1
-        for i, param in enumerate(self.params):
+        for param in self.params:
             if param.grad is not None:
                 if self.weight_decay is not None:
                     param.data -= self.lr * self.weight_decay * param.data # decoupled weight decay
+                
+                param_grad = _bx.copy(param.grad)
 
-                self.m[i] = self.b1 * self.m[i] + (1 - self.b1) * param.grad
-                self.v[i] = self.b2 * self.v[i] + (1 - self.b2) * (param.grad ** 2)
+                self.m[param] = self.b1 * self.m[param] + (1 - self.b1) * param_grad
+                self.v[param] = self.b2 * self.v[param] + (1 - self.b2) * (param_grad ** 2)
 
-                # bias correction
-                m_cor = self.m[i] / (1 - self.b1 ** self.t)
-                v_cor = self.v[i] / (1 - self.b2 ** self.t)
+                m_cor = self.m[param] / (1 - self.b1 ** self.t)
+                v_cor = self.v[param] / (1 - self.b2 ** self.t)
 
                 param.data -= self.lr * (m_cor / (_bx.sqrt(v_cor) + self.epsilon))

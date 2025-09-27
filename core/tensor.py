@@ -31,6 +31,10 @@ class Tensor:
         return id(self)
 
     @property
+    def data(self):
+        return Tensor(self.data, requires_grad=False)
+
+    @property
     def shape(self):
         if self.data is None:
             raise AttributeError("cannot access .shape for a Tensor with no data")

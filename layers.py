@@ -63,10 +63,51 @@ class Dropout(Layer):
         output = Tensor._from_op(dropout, t, self.p)
         return output
 
-class BatchNorm(Layer):
+class LayerNorm1d(Layer):
+    def __init__(self, in_feat, bias=True, epsilon=1e-5):
+        super().__init__()
+        self.weights = Parameter.ones((1, in_feat))
+        self.bias = Parameter.zeros((1, in_feat)) if bias else None
+        self.epsilon = epsilon
+
+    def forward(self, t):
+        mean = t.mean(axes=1)
+        var = ((t - mean) ** 2).mean(axes=1)
+        norm = (t - mean) / (var + self.epsilon) ** 0.5
+        output = self.weights * norm
+        return output + self.bias if self.bias is not None else output
+
+class LayerNorm2d(Layer):
     pass
-        
-class LayerNorm(Layer):
+
+class BatchNorm1d(Layer):
+    def __init__(self, in_feat, bias=True, momentum=0.9, train=True, epsilon=1e-5):
+        super().__init__()
+        self.weights = Parameter.ones((1, in_feat))
+        self.bias = Parameter.zeros((1, in_feat)) if bias else None
+        self.momentum = momentum
+        self.train = train
+        self.epsilon = epsilon
+
+        self.running_mean = Tensor.zeros(in_feat)
+        self.running_var = Tensor.ones(in_feat)
+
+    def forward(self, t):
+        if self.train:
+            mean = t.mean(axes=0)
+            var = ((t - mean) ** 2).mean(axes=0)
+            
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var
+            
+            norm = (t - mean) / (var + self.epsilon) ** 0.5
+        else:
+            norm = (t - self.running_mean) / (self.running_var + self.epsilon) ** 0.5
+
+        output = self.weights * norm
+        return output + self.bias if self.bias is not None else output
+
+class BatchNorm2d(Layer):
     pass
 
 # soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU), attention, embedding

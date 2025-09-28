@@ -58,7 +58,7 @@ class div:
     @staticmethod
     def backward(save, output_grad):
         dx = _reduce_grad(_bx.divide(output_grad, save.y), save.x_shape)
-        dy = _reduce_grad(_bx.divide(_bx.multiply(_bx.multiply(output_grad, -1), save.x), _bx.pow(save.y, 2)), save.y_shape)
+        dy = _reduce_grad(_bx.divide(_bx.multiply(_bx.multiply(output_grad, -1), save.x), _bx.power(save.y, 2)), save.y_shape)
         return dx, dy
 
 # Negation

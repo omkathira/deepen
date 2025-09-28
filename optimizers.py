@@ -36,13 +36,13 @@ class SGD(Optimizer):
                     param.data -= self.lr * self.m[param]
 
 class RMSprop(Optimizer):
-    def __init__(self, params, lr=1e-3, alpha=0.99, epsilon=1e-8, weight_decay=None):
+    def __init__(self, params, lr=1e-3, alpha=0.99, weight_decay=None, epsilon=1e-8):
         super().__init__(params)
         self.lr = lr
         self.alpha = alpha
-        self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.v = {} # stores running average of squared gradients
+        self.epsilon = epsilon
 
         for param in self.params:
             self.v[param] = _bx.zeros_like(param.data)
@@ -60,15 +60,15 @@ class RMSprop(Optimizer):
                 param.data -= self.lr * (param_grad / (_bx.sqrt(self.v[param]) + self.epsilon))
 
 class Adam(Optimizer):
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), epsilon=1e-8, weight_decay=None):
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), weight_decay=None, epsilon=1e-8):
         super().__init__(params)
         self.lr = lr
         self.b1, self.b2 = betas
-        self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.t = 0
-        self.m = {} # stores running average of gradients
-        self.v = {} # stores running average of squared gradients
+        self.m = {}
+        self.v = {}
+        self.epsilon = epsilon
 
         for param in self.params:
             self.m[param] = _bx.zeros_like(param.data)
@@ -93,15 +93,15 @@ class Adam(Optimizer):
                 param.data -= self.lr * (m_hat / (_bx.sqrt(v_hat) + self.epsilon))
 
 class AdamW(Optimizer):
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), epsilon=1e-8, weight_decay=None):
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), weight_decay=None, epsilon=1e-8):
         super().__init__(params)
         self.lr = lr
         self.b1, self.b2 = betas
-        self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.t = 0
         self.m = {}
         self.v = {}
+        self.epsilon = epsilon
 
         for param in self.params:
             self.m[param] = _bx.zeros_like(param.data)

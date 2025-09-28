@@ -16,7 +16,7 @@ class SGD(Optimizer):
         self.lr = lr
         self.momentum = momentum
         self.weight_decay = weight_decay
-        self.m = {} # momentum
+        self.m = {} # stores running average of gradients
 
         for param in self.params:
             self.m[param] = _bx.zeros_like(param.data)
@@ -36,18 +36,28 @@ class SGD(Optimizer):
                     param.data -= self.lr * self.m[param]
 
 class RMSprop(Optimizer):
-    def __init__(self, params):
+    def __init__(self, params, lr=1e-3, alpha=0.99, epsilon=1e-8, weight_decay=None):
         super().__init__(params)
-    
-    def step(self):
-        pass
+        self.lr = lr
+        self.alpha = alpha
+        self.epsilon = epsilon
+        self.weight_decay = weight_decay
+        self.v = {} # stores running average of squared gradients
 
-class AdaGrad(Optimizer):
-    def __init__(self, params):
-        super().__init__(params)
+        for param in self.params:
+            self.v[param] = _bx.zeros_like(param.data)
     
     def step(self):
-        pass
+        for param in self.params:
+            if param.grad is not None:
+                param_grad = _bx.copy(param.grad)
+
+                if self.weight_decay is not None:
+                    param_grad += self.weight_decay * param.data
+
+                self.v[param] = self.alpha * self.v[param] + (1 - self.alpha) * (param_grad ** 2)
+
+                param.data -= self.lr * (param_grad / (_bx.sqrt(self.v[param]) + self.epsilon))
 
 class Adam(Optimizer):
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), epsilon=1e-8, weight_decay=None):
@@ -57,8 +67,8 @@ class Adam(Optimizer):
         self.epsilon = epsilon
         self.weight_decay = weight_decay
         self.t = 0
-        self.m = {} # momentum
-        self.v = {} # variance
+        self.m = {} # stores running average of gradients
+        self.v = {} # stores running average of squared gradients
 
         for param in self.params:
             self.m[param] = _bx.zeros_like(param.data)
@@ -77,10 +87,10 @@ class Adam(Optimizer):
                 self.v[param] = self.b2 * self.v[param] + (1 - self.b2) * (param_grad ** 2) # variance in momentum updates
 
                 # bias correction
-                m_cor = self.m[param] / (1 - self.b1 ** self.t)
-                v_cor = self.v[param] / (1 - self.b2 ** self.t)
+                m_hat = self.m[param] / (1 - self.b1 ** self.t)
+                v_hat = self.v[param] / (1 - self.b2 ** self.t)
 
-                param.data -= self.lr * (m_cor / (_bx.sqrt(v_cor) + self.epsilon))
+                param.data -= self.lr * (m_hat / (_bx.sqrt(v_hat) + self.epsilon))
 
 class AdamW(Optimizer):
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), epsilon=1e-8, weight_decay=None):
@@ -109,7 +119,7 @@ class AdamW(Optimizer):
                 self.m[param] = self.b1 * self.m[param] + (1 - self.b1) * param_grad
                 self.v[param] = self.b2 * self.v[param] + (1 - self.b2) * (param_grad ** 2)
 
-                m_cor = self.m[param] / (1 - self.b1 ** self.t)
-                v_cor = self.v[param] / (1 - self.b2 ** self.t)
+                m_hat = self.m[param] / (1 - self.b1 ** self.t)
+                v_hat = self.v[param] / (1 - self.b2 ** self.t)
 
-                param.data -= self.lr * (m_cor / (_bx.sqrt(v_cor) + self.epsilon))
+                param.data -= self.lr * (m_hat / (_bx.sqrt(v_hat) + self.epsilon))

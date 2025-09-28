@@ -7,28 +7,28 @@ class Graph:
     def __init__(self, root: Tensor):
         self._nodes = self._topo_sort(root)
 
+    def _zero_grad(self):
+        for t in self._nodes:
+            t._reset_grad()
+
+    def _traverse(self, t: Tensor, visited: set, topo_order: list):
+        if t in visited or t._has_no_parents(): # ignore tensors that weren't generated from an upstream operation
+            return
+        
+        visited.add(t)
+        
+        for parent in t._parents:
+            self._traverse(parent, visited, topo_order)
+
+        topo_order.append(t)
+
     def _topo_sort(self, root: Tensor): # build a node dependency-based execution order
         visited = set()
         topo_order = []
 
-        def traverse(t: Tensor):
-            if t in visited or t._has_no_parents(): # ignore tensors that weren't generated from an upstream operation
-                return
-            
-            visited.add(t)
-            
-            for parent in t._parents:
-                traverse(parent)
-
-            topo_order.append(t)
-
-        traverse(root)
+        self._traverse(root, visited, topo_order)
 
         return topo_order
-    
-    def _zero_grad(self):
-        for t in self._nodes:
-            t._reset_grad()
 
     def _forward(self):
         for t in self._nodes:
@@ -51,14 +51,14 @@ class Graph:
             grads = t._op.backward(t._save, t.grad)
 
             for parent, grad in zip(t._parents, grads):
-                if not parent._can_receive_grad(grad): # tensor doesn't track a gradient
+                if not parent._can_receive_grad(grad): # tensor doesn't track gradients
                     continue
-                if parent.grad is None: # first time accumulating a gradient
+                if parent.grad is None: # first time accumulating gradients
                     parent.grad = grad
                 else:
-                    parent.grad = parent.grad + grad # updating gradient
+                    parent.grad = parent.grad + grad # updating gradients
 
-    def run(self, feed_dict):
+    def run(self, feed_dict: dict):
         for ph_t, data in feed_dict.items():
             ph_t.data = data
 
@@ -66,7 +66,7 @@ class Graph:
 
         self._forward()
 
-        self._nodes[-1].grad = _bx.ones_like(self._nodes[-1].data) # seed loss gradient
+        self._nodes[-1].grad = _bx.ones_like(self._nodes[-1].data) # seed loss
 
         self._backward()
 

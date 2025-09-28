@@ -1,5 +1,5 @@
 from deepen.backend import active_backend as bx
-from deepen.core.tensor import Tensor
+from deepen.core.tensor import Tensor, Parameter
 from deepen.ops.stochastic_ops import *
 
 _bx = bx() # backend singleton
@@ -13,9 +13,9 @@ class Layer:
         return self.forward(*args, **kwargs)
 
     def __setattr__(self, name, value): 
-        if isinstance(value, Layer): # register layers, essentially registers layer l + 1 as a child of layer l
+        if isinstance(value, Layer): # register sublayers
             self._layers[name] = value
-        elif isinstance(value, Tensor) and value.requires_grad: # register parameters
+        elif isinstance(value, Parameter): # register parameters
             self._parameters[name] = value
 
         super().__setattr__(name, value)
@@ -29,8 +29,8 @@ class Layer:
 class Linear(Layer):
     def __init__(self, in_feat, out_feat, bias=True):
         super().__init__()
-        self.weights = Tensor.random((in_feat, out_feat), requires_grad=True)
-        self.bias = Tensor.zeros((1, out_feat), requires_grad=True) if bias else None
+        self.weights = Parameter.random((in_feat, out_feat))
+        self.bias = Parameter.zeros((1, out_feat)) if bias else None
 
     def forward(self, t):
         output = t.matmul(self.weights)
@@ -39,9 +39,9 @@ class Linear(Layer):
 class Quadratic(Layer):
     def __init__(self, in_feat, out_feat, bias=True):
         super().__init__()
-        self.quad_weights = Tensor.random((in_feat, in_feat), requires_grad=True)
-        self.lin_weights = Tensor.random((in_feat, out_feat), requires_grad=True)
-        self.bias = Tensor.zeros((1, out_feat), requires_grad=True) if bias else None
+        self.quad_weights = Parameter.random((in_feat, in_feat))
+        self.lin_weights = Parameter.random((in_feat, out_feat))
+        self.bias = Parameter.zeros((1, out_feat)) if bias else None
 
     def forward(self, t):
         quad_output = (t.matmul(self.quad_weights) * t).sum(axes=1).reshape(-1, 1)
@@ -60,7 +60,7 @@ class Dropout(Layer):
     def forward(self, t):
         if self.p == 0.0 or not self.train:
             return t
-        output = Tensor._from_op(dropout, t, p=self.p)
+        output = Tensor._from_op(dropout, t, self.p)
         return output
 
 class BatchNorm(Layer):
@@ -69,4 +69,4 @@ class BatchNorm(Layer):
 class LayerNorm(Layer):
     pass
 
-# soon: convolutional layers, pooling layers
+# soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU), attention, embedding

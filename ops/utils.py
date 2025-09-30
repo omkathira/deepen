@@ -9,11 +9,11 @@ def _reduce_grad(grad, target_shape):
 
     grad_ndim, target_ndim = len(grad.shape), len(target_shape)
 
-    # leading axes case where grad shape is say (5, 3, 4) but we need (3, 4) so axis (0,) has to be reduced    
+    # leading axes case where grad shape is, say, (5, 3, 4) but we need (3, 4) so axis (0,) has to be reduced    
     leading = range(grad_ndim - target_ndim) # inner axes can never be missing
 
-    # inner axes case where grad shape is say (5, 3, 4) but we need (1, 3, 4) so axis (0,) has to be reduced, or another
-    # inner axes case where grad shape is say (2, 3, 4, 5) but we need (1, 3, 1, 5) so axes (0, 2) have to be reduced
+    # inner axes case where grad shape is, say, (5, 3, 4) but we need (1, 3, 4) so axis (0,) has to be reduced, or another
+    # inner axes case where grad shape is, say, (2, 3, 4, 5) but we need (1, 3, 1, 5) so axes (0, 2) have to be reduced
     inner = [
         i + (grad_ndim - target_ndim)
         for i, (grad_dim, target_dim) in enumerate(zip(grad.shape[-target_ndim:], target_shape))
@@ -64,7 +64,7 @@ class Cache:
     n: object = None
 
     # Only used in log
-    log_base_tensor: object = None
+    log_base: object = None
 
     # Only used in clip
     min_val: object = None
@@ -82,7 +82,6 @@ class Cache:
 
     # Only used in concatenate
     x_end: object = None
-    y_end: object = None
 
     # Only used in dropout
     q: object = None

@@ -7,8 +7,8 @@ _bx = bx() # backend singleton
 class add:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.add(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
     
     @staticmethod
@@ -21,8 +21,8 @@ class add:
 class sub:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.subtract(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
     
     @staticmethod
@@ -35,9 +35,9 @@ class sub:
 class mul:
     @staticmethod
     def forward(save, x, y):
-        save.x, save.y = x, y
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.multiply(x, y)
+        save.x, save.x_shape = x, x.shape
+        save.y, save.y_shape = y, y.shape
         return output
     
     @staticmethod
@@ -50,9 +50,9 @@ class mul:
 class div:
     @staticmethod
     def forward(save, x, y):
-        save.x, save.y = x, y
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.divide(x, y)
+        save.x, save.x_shape = x, x.shape
+        save.y, save.y_shape = y, y.shape
         return output
     
     @staticmethod
@@ -65,8 +65,8 @@ class div:
 class neg:
     @staticmethod
     def forward(save, x):
-        save.x_shape = x.shape
         output = _bx.multiply(x, -1)
+        save.x_shape = x.shape
         return output
     
     @staticmethod
@@ -78,8 +78,8 @@ class neg:
 class abs_: 
     @staticmethod
     def forward(save, x):
-        save.x, save.x_shape = x, x.shape
         output = _bx.abs(x)
+        save.x, save.x_shape = x, x.shape
         return output
     
     @staticmethod
@@ -91,9 +91,8 @@ class abs_:
 class pow_:
     @staticmethod
     def forward(save, x, n):
-        save.x, save.x_shape = x, x.shape
-        save.n = n
         output = _bx.power(x, n)
+        save.x, save.x_shape, save.n = x, x.shape, n
         return output
     
     @staticmethod
@@ -105,9 +104,8 @@ class pow_:
 class exp:
     @staticmethod
     def forward(save, x):
-        save.x_shape = x.shape
         output = _bx.exp(x)
-        save.output = output
+        save.x_shape, save.output = x.shape, output
         return output
     
     @staticmethod
@@ -119,29 +117,27 @@ class exp:
 class log:
     @staticmethod
     def forward(save, x, base=_bx.e):
-        save.x, save.x_shape = x, x.shape
-        base_tensor = _bx.array(base, dtype=x.dtype)
-        log_base_tensor = _bx.log(base_tensor)
-        save.log_base_tensor = log_base_tensor
-        output = _bx.divide(_bx.log(x), log_base_tensor)
+        log_base = _bx.log(_bx.array(base, dtype=x.dtype))
+        output = _bx.divide(_bx.log(x), log_base)
+        save.x, save.x_shape, save.log_base = x, x.shape, log_base
         return output
     
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.multiply(output_grad, _bx.divide(1, _bx.multiply(save.x, save.log_base_tensor))), save.x_shape)
+        dx = _reduce_grad(_bx.multiply(output_grad, _bx.divide(1, _bx.multiply(save.x, save.log_base))), save.x_shape)
         return dx, None
 
 # Clip
 class clip:
     @staticmethod
     def forward(save, x, min_val, max_val):
+        output = _bx.clip(x, min_val, max_val)
         save.x, save.x_shape = x, x.shape
         save.min_val, save.max_val = min_val, max_val
-        output = _bx.clip(x, min_val, max_val)
         return output
     
     @staticmethod
     def backward(save, output_grad):
-        mask = (save.x >= save.min_val) & (save.x <= save.max_val)
-        dx = _reduce_grad(_bx.multiply(output_grad, mask.astype(save.x.dtype)), save.x_shape) # preserve dtype when applying mask
+        mask = _bx.cast((save.x >= save.min_val) & (save.x <= save.max_val), save.x.dtype)
+        dx = _reduce_grad(_bx.multiply(output_grad, mask), save.x_shape) # preserve dtype when applying mask
         return dx, None, None

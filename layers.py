@@ -27,21 +27,39 @@ class Layer:
         return params
 
 class Linear(Layer):
-    def __init__(self, in_feat, out_feat, bias=True):
+    def __init__(self, in_feat, out_feat, weight_init="uniform", bias=True, bias_init="zeros"):
         super().__init__()
-        self.weights = Parameter.random((in_feat, out_feat))
-        self.bias = Parameter.zeros((1, out_feat)) if bias else None
+        weight_init_fn = getattr(Parameter, weight_init, None)
+        if not callable(weight_init_fn):
+            raise ValueError(f"unknown weight initializer")
+        
+        self.weights = weight_init_fn((in_feat, out_feat))
+
+        bias_init_fn = getattr(Parameter, bias_init, None)
+        if not callable(bias_init_fn):
+            raise ValueError(f"unknown bias initializer")
+        
+        self.bias = bias_init_fn((1, out_feat)) if bias else None
 
     def forward(self, t):
         output = t.matmul(self.weights)
         return output + self.bias if self.bias is not None else output
 
 class Quadratic(Layer):
-    def __init__(self, in_feat, out_feat, bias=True):
+    def __init__(self, in_feat, out_feat, weight_init="uniform", bias=True, bias_init="zeros"):
         super().__init__()
-        self.quad_weights = Parameter.random((in_feat, in_feat))
-        self.lin_weights = Parameter.random((in_feat, out_feat))
-        self.bias = Parameter.zeros((1, out_feat)) if bias else None
+        weight_init_fn = getattr(Parameter, weight_init, None)
+        if not callable(weight_init_fn):
+            raise ValueError(f"unknown weight initializer")
+        
+        self.quad_weights = weight_init_fn((in_feat, in_feat))
+        self.lin_weights = weight_init_fn((in_feat, out_feat))
+
+        bias_init_fn = getattr(Parameter, bias_init, None)
+        if not callable(bias_init_fn):
+            raise ValueError(f"unknown bias initializer")
+        
+        self.bias = bias_init_fn((1, out_feat)) if bias else None
 
     def forward(self, t):
         quad_output = (t.matmul(self.quad_weights) * t).sum(axes=1).reshape(-1, 1)
@@ -110,4 +128,4 @@ class BatchNorm1d(Layer):
 class BatchNorm2d(Layer):
     pass
 
-# soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU), attention, embedding
+# soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU, orthogonal weight init), attention (need to add elu, gelu, more stochastic ops)

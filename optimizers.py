@@ -24,7 +24,9 @@ class SGD(Optimizer):
     def step(self):
         for param in self.params:
             if param.grad is not None:
-                param_grad = _bx.copy(param.grad) # avoid modifying original gradient in-place
+                # normally, we'd create a copy (or, call .detach()) to avoid modifying original gradients in-place
+                # but, our gradients here are not tensors - they're just backend arrays
+                param_grad = param.grad
 
                 if self.weight_decay is not None:
                     param_grad += self.weight_decay * param.data # coupled weight decay
@@ -50,7 +52,7 @@ class RMSprop(Optimizer):
     def step(self):
         for param in self.params:
             if param.grad is not None:
-                param_grad = _bx.copy(param.grad)
+                param_grad = param.grad
 
                 if self.weight_decay is not None:
                     param_grad += self.weight_decay * param.data
@@ -78,7 +80,7 @@ class Adam(Optimizer):
         self.t += 1
         for param in self.params:
             if param.grad is not None:
-                param_grad = _bx.copy(param.grad)
+                param_grad = param.grad
 
                 if self.weight_decay is not None:
                     param_grad += self.weight_decay * param.data
@@ -114,7 +116,7 @@ class AdamW(Optimizer):
                 if self.weight_decay is not None:
                     param.data -= self.lr * self.weight_decay * param.data # decoupled weight decay
                 
-                param_grad = _bx.copy(param.grad)
+                param_grad = param.grad
 
                 self.m[param] = self.b1 * self.m[param] + (1 - self.b1) * param_grad
                 self.v[param] = self.b2 * self.v[param] + (1 - self.b2) * (param_grad ** 2)

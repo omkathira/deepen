@@ -7,9 +7,9 @@ _bx = bx() # backend singleton
 class matmul:
     @staticmethod
     def forward(save, x, y):
+        output = _bx.matmul(x, y)
         save.x, save.x_shape = x, x.shape
         save.y, save.y_shape = y, y.shape
-        output = _bx.matmul(x, y)
         return output
     
     @staticmethod
@@ -22,9 +22,9 @@ class matmul:
 class outer:
     @staticmethod
     def forward(save, x, y):
+        output = _bx.outer(x, y)
         save.x, save.x_shape = x, x.shape
         save.y, save.y_shape = y, y.shape
-        output = _bx.outer(x, y)
         return output
     
     @staticmethod

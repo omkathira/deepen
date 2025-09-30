@@ -103,12 +103,12 @@ class Tensor:
         return cls(_bx.random.random(size=shape, dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def uniform(cls, shape, interval=(0.0, 1.0), dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.uniform(size=shape, low=interval[0], high=interval[1], dtype=dtype), requires_grad=requires_grad)
+    def uniform(cls, shape, bounds=(0.0, 1.0), dtype=_bx.float32, requires_grad=_default_requires_grad):
+        return cls(_bx.random.uniform(size=shape, low=bounds[0], high=bounds[1], dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def normal(cls, shape, loc=0.0, scale=1.0, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.normal(size=shape, loc=loc, scale=scale, dtype=dtype), requires_grad=requires_grad)
+    def normal(cls, shape, mean=0.0, std=1.0, dtype=_bx.float32, requires_grad=_default_requires_grad):
+        return cls(_bx.random.normal(size=shape, loc=mean, scale=std, dtype=dtype), requires_grad=requires_grad)
     
     # Element-wise operations
     def __add__(self, other): return Tensor._from_op(add, self, other)
@@ -160,6 +160,7 @@ class Tensor:
     def tanh(self): return Tensor._from_op(tanh, self)
     def relu(self): return Tensor._from_op(relu, self)
     def leaky_relu(self, neg_slope=0.1): return Tensor._from_op(leaky_relu, self, neg_slope=neg_slope)
+    def swish(self): return Tensor._from_op(swish, self)
 
 class Parameter(Tensor):
     _default_requires_grad = True
@@ -186,33 +187,33 @@ class Parameter(Tensor):
         return cls(_bx.random.random(size=shape, dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def uniform(cls, shape, interval=(0.0, 1.0), dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.uniform(size=shape, low=interval[0], high=interval[1], dtype=dtype), requires_grad=requires_grad)
+    def uniform(cls, shape, bounds=(-0.05, 0.05), dtype=_bx.float32, requires_grad=_default_requires_grad):
+        return cls(_bx.random.uniform(size=shape, low=bounds[0], high=bounds[1], dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def normal(cls, shape, loc=0.0, scale=1.0, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.normal(size=shape, loc=loc, scale=scale, dtype=dtype), requires_grad=requires_grad)
+    def normal(cls, shape, mean=0.0, std=0.2, dtype=_bx.float32, requires_grad=_default_requires_grad):
+        return cls(_bx.random.normal(size=shape, loc=mean, scale=std, dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def xavier(cls, shape, dist_type="uniform", dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def xavier_uniform(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
         fan_in, fan_out = shape
-
-        if dist_type == "uniform":
-            limit = _bx.sqrt(6 / (fan_in + fan_out))
-            return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
-        
-        elif dist_type == "normal":
-            scale = _bx.sqrt(2 / (fan_in + fan_out))
-            return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
+        limit = _bx.sqrt(6 / (fan_in + fan_out))
+        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
 
     @classmethod
-    def he(cls, shape, dist_type="uniform", dtype=_bx.float32, requires_grad=_default_requires_grad):
-        fan_in, _ = shape
+    def xavier_normal(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+        fan_in, fan_out = shape
+        scale = _bx.sqrt(2 / (fan_in + fan_out))
+        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
 
-        if dist_type == "uniform":
-            limit = _bx.sqrt(6 / (fan_in))
-            return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
-        
-        elif dist_type == "normal":
-            scale = _bx.sqrt(2 / (fan_in))
-            return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
+    @classmethod
+    def he_uniform(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+        fan_in, _ = shape
+        limit = _bx.sqrt(6 / (fan_in))
+        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
+
+    @classmethod
+    def he_normal(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+        fan_in, _ = shape
+        scale = _bx.sqrt(2 / (fan_in))
+        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)

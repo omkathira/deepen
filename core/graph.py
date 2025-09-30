@@ -11,7 +11,7 @@ class Graph:
         for t in self._nodes:
             t._reset_grad()
 
-    def _traverse(self, t: Tensor, visited: set, topo_order: list):
+    def _traverse(self, t: Tensor, visited, topo_order):
         if t in visited or t._has_no_parents(): # ignore tensors that weren't generated from an upstream operation
             return
         
@@ -58,7 +58,7 @@ class Graph:
                 else:
                     parent.grad = parent.grad + grad # updating gradients
 
-    def run(self, feed_dict: dict):
+    def run(self, feed_dict):
         for ph_t, data in feed_dict.items():
             ph_t.data = data
 

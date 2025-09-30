@@ -7,8 +7,8 @@ _bx = bx() # backend singleton
 class eq:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.equal(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -21,8 +21,8 @@ class eq:
 class ne:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.not_equal(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -35,8 +35,8 @@ class ne:
 class lt:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.less(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -49,8 +49,8 @@ class lt:
 class le:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.less_equal(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -63,8 +63,8 @@ class le:
 class gt:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.greater(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -77,8 +77,8 @@ class gt:
 class ge:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.greater_equal(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -91,8 +91,8 @@ class ge:
 class not_:
     @staticmethod
     def forward(save, x):
-        save.x_shape = x.shape
         output = _bx.logical_not(x)
+        save.x_shape = x.shape
         return output
 
     @staticmethod
@@ -104,8 +104,8 @@ class not_:
 class and_:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.logical_and(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod
@@ -118,8 +118,8 @@ class and_:
 class or_:
     @staticmethod
     def forward(save, x, y):
-        save.x_shape, save.y_shape = x.shape, y.shape
         output = _bx.logical_or(x, y)
+        save.x_shape, save.y_shape = x.shape, y.shape
         return output
 
     @staticmethod

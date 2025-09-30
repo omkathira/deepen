@@ -20,9 +20,8 @@ class sigmoid:
 class tanh:
     @staticmethod
     def forward(save, x):
-        save.x = x
         output = _bx.tanh(x)
-        save.output = output
+        save.x, save.output = x, output
         return output
 
     @staticmethod
@@ -34,8 +33,8 @@ class tanh:
 class relu:
     @staticmethod
     def forward(save, x):
-        save.x = x
         output = _bx.maximum(0, x)
+        save.x = x
         return output
 
     @staticmethod
@@ -48,14 +47,28 @@ class relu:
 class leaky_relu:
     @staticmethod
     def forward(save, x, neg_slope=0.1):
-        save.x = x
         slope = _bx.array(neg_slope, dtype=x.dtype)
-        save.slope = slope
         output = _bx.maximum(_bx.multiply(x, slope), x)
+        save.x, save.slope = x, slope
         return output
 
     @staticmethod
     def backward(save, output_grad):
         grad_mask = _bx.where(save.x > 0, _bx.ones_like(save.x), save.slope)
         dx = _bx.multiply(output_grad, grad_mask)
+        return dx,
+
+# Swish
+class swish:
+    @staticmethod
+    def forward(save, x):
+        ones = _bx.ones_like(x)
+        sigmoid = _bx.divide(ones, _bx.add(ones, _bx.exp(_bx.multiply(x, -1))))
+        output = _bx.multiply(x, sigmoid)
+        save.x, save.ones, save.sigmoid, save.output = x, ones, sigmoid, output
+        return output
+
+    @staticmethod
+    def backward(save, output_grad):
+        dx = _bx.multiply(output_grad, _bx.add(save.sigmoid, _bx.multiply(save.x, _bx.multiply(save.sigmoid, _bx.subtract(save.ones, save.sigmoid)))))
         return dx,

@@ -6,8 +6,6 @@ _bx = bx() # backend singleton
 class squeeze:
     @staticmethod
     def forward(save, x, axes=None):
-        save.x_shape = x.shape
-
         if axes is None:
             output = _bx.squeeze(x)
         else:
@@ -17,6 +15,8 @@ class squeeze:
             else:
                 norm_axes = tuple(ax if ax >= 0 else ax + x.ndim for ax in axes) # handle multiple possible negative axes
                 output = _bx.squeeze(x, axis=norm_axes)
+
+        save.x_shape = x.shape
 
         return output
 
@@ -29,8 +29,6 @@ class squeeze:
 class unsqueeze:
     @staticmethod
     def forward(save, x, axes=None):
-        save.x_shape = x.shape
-
         if axes is None:
             raise ValueError("unsqueeze requires axes (int or iterable)")
 
@@ -43,6 +41,8 @@ class unsqueeze:
             for ax in sorted(norm_axes, reverse=True):
                 output = _bx.expand_dims(output, axis=ax)
 
+        save.x_shape = x.shape
+
         return output
 
     @staticmethod
@@ -54,8 +54,8 @@ class unsqueeze:
 class transpose:
     @staticmethod
     def forward(save, x, axes=None):
-        save.axes = axes
         output = _bx.transpose(x, axes)
+        save.axes = axes
         return output
     
     @staticmethod
@@ -77,24 +77,22 @@ class transpose:
 class concatenate:
     @staticmethod
     def forward(save, x, y, axes=None):
-        save.x_end = x.shape[axes]
-        save.y_end = x.shape[axes] + y.shape[axes]
-        save.axes = axes
         output = _bx.concatenate([x, y], axis=axes)
+        save.x_end, save.axes = x.shape[axes], axes
         return output
 
     @staticmethod
     def backward(save, output_grad):
-        dx = output_grad.take(range(save.x_end), axis=save.axes)
-        dy = output_grad.take(range(save.x_end, save.y_end), axis=save.axes)
+        dx = output_grad[..., :save.x_end, ...]
+        dy = output_grad[..., save.x_end:, ...]
         return dx, dy
 
 # Reshape
 class reshape:
     @staticmethod
     def forward(save, x, shape):
-        save.x_shape = x.shape
         output = _bx.reshape(x, shape)
+        save.x_shape = x.shape
         return output
     
     @staticmethod

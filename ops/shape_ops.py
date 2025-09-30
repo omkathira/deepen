@@ -83,8 +83,21 @@ class concatenate:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = output_grad[..., :save.x_end, ...]
-        dy = output_grad[..., save.x_end:, ...]
+        # dx = output_grad[..., :save.x_end, ...]
+        # dy = output_grad[..., save.x_end:, ...]
+
+        axis = 0 if save.axes is None else save.axes
+        ndim = output_grad.ndim
+        axis = axis if axis >= 0 else axis + ndim
+
+        idx_x = [slice(None)] * ndim
+        idx_y = [slice(None)] * ndim
+        idx_x[axis] = slice(0, save.x_end)
+        idx_y[axis] = slice(save.x_end, None)
+
+        dx = output_grad[tuple(idx_x)]
+        dy = output_grad[tuple(idx_y)]
+
         return dx, dy
 
 # Reshape

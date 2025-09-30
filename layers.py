@@ -81,6 +81,19 @@ class Dropout(Layer):
         output = Tensor._from_op(dropout, t, self.p)
         return output
 
+class GaussianNoise(Layer):
+    def __init__(self,  mean=0.0, std=0.1, train=True):
+        super().__init__()
+        self.mean = mean
+        self.std = std
+        self.train = train
+    
+    def forward(self, t):
+        if self.std == 0.0 or not self.train:
+            return t
+        output = Tensor._from_op(gaussian_noise, t, self.mean, self.std)
+        return output
+
 class LayerNorm1d(Layer):
     def __init__(self, in_feat, bias=True, epsilon=1e-5):
         super().__init__()
@@ -128,4 +141,43 @@ class BatchNorm1d(Layer):
 class BatchNorm2d(Layer):
     pass
 
+
+
 # soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU, orthogonal weight init), attention (need to add elu, gelu, more stochastic ops)
+
+# class ODESolver(Layer):
+#     def __init__(self, func: Layer, step_size=1e-2, steps=None, method="euler"):
+#         super().__init__()
+#         self.func = func
+#         self.step_size = step_size
+#         self.steps = steps
+#         self.method = method
+    
+#     def forward(self, y0, t0=0.0, t1=1.0):
+#         h = self.step_size
+#         if self.steps is None:
+#             n_steps = int(max(1, round((t1 - t0) / h)))
+#         else:
+#             n_steps = self.steps
+#             h = (t1 - t0) / max(1, n_steps)
+
+#         y = y0
+#         t = t0
+
+#         if self.method == "euler":
+#             for _ in range(n_steps):
+#                 dy = self.func(t, y)
+#                 y = y + h * dy
+#                 t = t + h
+#             return y
+#         elif self.method == "rk4":
+#             for _ in range(n_steps):
+#                 k1 = self.func(t, y)
+#                 k2 = self.func(t + 0.5 * h, y + 0.5 * h * k1)
+#                 k3 = self.func(t + 0.5 * h, y + 0.5 * h * k2)
+#                 k4 = self.func(t + h, y + h * k3)
+#                 y = y + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+#                 t = t + h
+#             return y
+#         else:
+#             raise ValueError("unknown integration method")

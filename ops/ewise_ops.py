@@ -138,6 +138,6 @@ class clip:
     
     @staticmethod
     def backward(save, output_grad):
-        mask = _bx.cast((save.x >= save.min_val) & (save.x <= save.max_val), save.x.dtype)
+        mask = _bx.cast((save.x >= save.min_val) & (save.x <= save.max_val), dtype=save.x.dtype)
         dx = _reduce_grad(_bx.multiply(output_grad, mask), save.x_shape) # preserve dtype when applying mask
         return dx, None, None

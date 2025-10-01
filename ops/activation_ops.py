@@ -1,3 +1,4 @@
+from ast import Pass
 from deepen.backend import active_backend as bx
 
 _bx = bx() # backend singleton
@@ -57,6 +58,10 @@ class leaky_relu:
         grad_mask = _bx.where(save.x > 0, _bx.ones_like(save.x), save.slope)
         dx = _bx.multiply(output_grad, grad_mask)
         return dx,
+
+# GELU
+class gelu:
+    pass
 
 # Swish
 class swish:

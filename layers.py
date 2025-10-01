@@ -141,43 +141,35 @@ class BatchNorm1d(Layer):
 class BatchNorm2d(Layer):
     pass
 
+class Conv1d():
+    pass
 
+class Conv2d():
+    pass
 
-# soon: convolutional layers (1d, 2d), pooling layers (max/avg, 1d, 2d), RNN layers (LSTM, GRU, orthogonal weight init), attention (need to add elu, gelu, more stochastic ops)
+class Pool1d():
+    pass
 
-# class ODESolver(Layer):
-#     def __init__(self, func: Layer, step_size=1e-2, steps=None, method="euler"):
-#         super().__init__()
-#         self.func = func
-#         self.step_size = step_size
-#         self.steps = steps
-#         self.method = method
-    
-#     def forward(self, y0, t0=0.0, t1=1.0):
-#         h = self.step_size
-#         if self.steps is None:
-#             n_steps = int(max(1, round((t1 - t0) / h)))
-#         else:
-#             n_steps = self.steps
-#             h = (t1 - t0) / max(1, n_steps)
+class Pool2d():
+    pass
 
-#         y = y0
-#         t = t0
+class MultiHeadAttention(Layer):
+    def __init__(self, in_feat, latent_feat, num_heads=4):
+        super().__init__()
+        if latent_feat % num_heads != 0:
+            raise ValueError("latent_feat must be divisible by num_heads")
 
-#         if self.method == "euler":
-#             for _ in range(n_steps):
-#                 dy = self.func(t, y)
-#                 y = y + h * dy
-#                 t = t + h
-#             return y
-#         elif self.method == "rk4":
-#             for _ in range(n_steps):
-#                 k1 = self.func(t, y)
-#                 k2 = self.func(t + 0.5 * h, y + 0.5 * h * k1)
-#                 k3 = self.func(t + 0.5 * h, y + 0.5 * h * k2)
-#                 k4 = self.func(t + h, y + h * k3)
-#                 y = y + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
-#                 t = t + h
-#             return y
-#         else:
-#             raise ValueError("unknown integration method")
+        self.latent_feat = latent_feat
+        self.num_heads = num_heads
+        self.att_head_feat = latent_feat / num_heads
+
+        self.q_proj = Linear(in_feat, latent_feat)
+        self.k_proj = Linear(in_feat, latent_feat)
+        self.v_proj = Linear(in_feat, latent_feat)
+
+        self.out_proj = Linear(latent_feat, in_feat)
+
+    def _split_heads(self, x):
+        pass
+
+# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: edit swish, concatenate

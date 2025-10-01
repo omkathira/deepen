@@ -13,8 +13,8 @@ class eq:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Not equal to
@@ -27,8 +27,8 @@ class ne:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Less than
@@ -41,8 +41,8 @@ class lt:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Less than or equal to
@@ -55,8 +55,8 @@ class le:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Greater than
@@ -69,8 +69,8 @@ class gt:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Greater than or equal to
@@ -83,8 +83,8 @@ class ge:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Not
@@ -97,7 +97,7 @@ class not_:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
         return dx,
 
 # And
@@ -110,8 +110,8 @@ class and_:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy
 
 # Or
@@ -124,6 +124,6 @@ class or_:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _reduce_grad(_bx.zeros(shape=save.x_shape, dtype=output_grad.dtype), save.x_shape)
-        dy = _reduce_grad(_bx.zeros(shape=save.y_shape, dtype=output_grad.dtype), save.y_shape)
+        dx = _reduce_grad(_bx.zeros_like(output_grad), save.x_shape)
+        dy = _reduce_grad(_bx.zeros_like(output_grad), save.y_shape)
         return dx, dy

@@ -29,7 +29,7 @@ class mean:
     @staticmethod
     def backward(save, output_grad):
         num_elements = _count_elements(save.x_shape, save.axes)
-        factor = _bx.divide(1.0, num_elements)
+        factor = _bx.divide(1.0, num_elements, dtype=output_grad.dtype)
         dx = _bx.broadcast_to(_bx.multiply(output_grad, factor), save.x_shape)
         return dx,
 

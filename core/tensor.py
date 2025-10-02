@@ -2,8 +2,9 @@ from numbers import Number
 from deepen.backend import active_backend as bx
 from deepen.ops.ewise_ops import *
 from deepen.ops.logical_ops import *
-from deepen.ops.reduction_ops import *
+from deepen.ops.index_ops import *
 from deepen.ops.shape_ops import *
+from deepen.ops.reduction_ops import *
 from deepen.ops.linalg_ops import *
 from deepen.ops.activation_ops import *
 from deepen.ops.utils import Cache
@@ -11,9 +12,17 @@ from deepen.ops.utils import Cache
 _bx = bx() # backend singleton
 
 class Tensor:
+    # Class variables
     _default_requires_grad = False
+
+    # Global contexts
+    _eager_mode = False
+    _no_grad_mode = False
     
     def __init__(self, data=None, requires_grad=_default_requires_grad):
+        if Tensor._no_grad_mode:
+            requires_grad = False
+
         if data is not None:
             data = _bx.array(data)
 
@@ -29,7 +38,7 @@ class Tensor:
         self._args = None # arguments that are data we pass through the neural network
         self._kwargs = None # arguments that aren't like the above (like axes, shape, etc)
     
-    def __hash__(self): # __eq__ is a logical operation so we need to define __hash__
+    def __hash__(self): # __eq__ is used as a logical operation so we need to define __hash__
         return id(self)
 
     @property
@@ -48,9 +57,9 @@ class Tensor:
         args_list = []
         
         for arg in args:
-            if isinstance(arg, Tensor): # placeholder for a Tensor (True)
+            if isinstance(arg, Tensor): # placeholder for a Tensor (true)
                 args_list.append((True, arg))
-            elif isinstance(arg, Number) or isinstance(arg, _bx.ndarray): # placeholder for a literal (False)
+            elif isinstance(arg, Number) or isinstance(arg, _bx.ndarray): # placeholder for a literal (false)
                 arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg)
                 args_list.append((False, arr))
             else:
@@ -65,6 +74,17 @@ class Tensor:
         output._save = Cache()
         output._args = tuple(args_list)
         output._kwargs = kwargs
+
+        if Tensor._eager_mode:
+            if any(isinstance(parent, Parameter) for parent in output._parents):
+                raise ValueError("cannot create/modify Parameter(s) in eager mode")
+
+            args = [
+                arg.data if isinstance(arg, Tensor) else arg
+                for arg in args
+            ]
+
+            output.data = op_cls.forward(output._save, *args, **kwargs)
 
         return output
 
@@ -137,12 +157,8 @@ class Tensor:
     def __and__(self, other): return Tensor._from_op(and_, self, other)
     def __or__(self, other): return Tensor._from_op(or_, self, other)
 
-    # Reduction operations
-    def sum(self, axes=None): return Tensor._from_op(sum_, self, axes=axes)
-    def mean(self, axes=None): return Tensor._from_op(mean, self, axes=axes)
-    def min(self, axes=None): return Tensor._from_op(min_, self, axes=axes)
-    def max(self, axes=None): return Tensor._from_op(max_, self, axes=axes)
-    def softmax(self, axes=None): return Tensor._from_op(softmax, self, axes=axes)
+    # Index operations
+    def gather(self, indices=None): return Tensor._from_op(gather, self, indices=indices)
 
     # Shape operations
     def squeeze(self, axes=None): return Tensor._from_op(squeeze, self, axes=axes)
@@ -150,6 +166,13 @@ class Tensor:
     def transpose(self, axes=None): return Tensor._from_op(transpose, self, axes=axes)
     def concatenate(self, other, axes=None): return Tensor._from_op(concatenate, self, other, axes=axes)
     def reshape(self, *shape): return Tensor._from_op(reshape, self, shape=shape)
+
+    # Reduction operations
+    def sum(self, axes=None): return Tensor._from_op(sum_, self, axes=axes)
+    def mean(self, axes=None): return Tensor._from_op(mean, self, axes=axes)
+    def min(self, axes=None): return Tensor._from_op(min_, self, axes=axes)
+    def max(self, axes=None): return Tensor._from_op(max_, self, axes=axes)
+    def softmax(self, axes=None): return Tensor._from_op(softmax, self, axes=axes)
 
     # Linear algebra operations
     def matmul(self, other): return Tensor._from_op(matmul, self, other)
@@ -166,7 +189,13 @@ class Parameter(Tensor):
     _default_requires_grad = True
 
     def __init__(self, data=None, requires_grad=_default_requires_grad):
+        if Tensor._eager_mode:
+            raise ValueError("cannot create/modify Parameter(s) in eager mode")
+        if Tensor._no_grad_mode:
+            raise ValueError("cannot create/modify Parameter(s) in no_grad mode")
+
         super().__init__(data, requires_grad)
+
         self._is_parameter = True
     
     # Parameter creation/initialization methods

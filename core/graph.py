@@ -5,7 +5,14 @@ _bx = bx() # backend singleton
 
 class Graph:
     def __init__(self, root: Tensor):
+        self._clear_computed_data(root)
         self._nodes = self._topo_sort(root)
+
+    def _clear_computed_data(self, t):
+        if t._op is not None:
+            t.data = None
+            for parent in t._parents:
+                self._clear_computed_data(parent)
 
     def _zero_grad(self):
         for t in self._nodes:
@@ -56,7 +63,7 @@ class Graph:
                 if parent.grad is None: # first time accumulating gradients
                     parent.grad = grad
                 else:
-                    parent.grad = parent.grad + grad # updating gradients
+                    parent.grad += grad # updating gradients
 
     def run(self, feed_dict):
         for ph_t, data in feed_dict.items():

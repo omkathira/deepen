@@ -141,17 +141,40 @@ class BatchNorm1d(Layer):
 class BatchNorm2d(Layer):
     pass
 
-class Conv1d():
+class Conv1d(Layer):
     pass
 
-class Conv2d():
+class Conv2d(Layer):
     pass
 
-class Pool1d():
+class Pool1d(Layer):
     pass
 
-class Pool2d():
+class Pool2d(Layer):
     pass
+
+class Embedding(Layer):
+    def __init__(self, vocab_size, latent_feat, weight_init="uniform"):
+        super().__init__()
+        self.vocab_size = vocab_size
+        self.latent_feat = latent_feat
+
+        weight_init_fn = getattr(Parameter, weight_init, None)
+        if not callable(weight_init_fn):
+            raise ValueError(f"unknown weight initializer")
+        
+        self.weights = weight_init_fn((vocab_size, latent_feat))
+    
+    def forward(self, x):
+        return self.weights.gather(x)
+
+class PositionalEncoding(Layer):
+    def __init__(self, seq_len, latent_feat):
+        super().__init__()
+        self.seq_len = seq_len
+        self.latent_feat = latent_feat
+
+        
 
 class MultiHeadAttention(Layer):
     def __init__(self, in_feat, latent_feat, num_heads=4):
@@ -170,6 +193,7 @@ class MultiHeadAttention(Layer):
         self.out_proj = Linear(latent_feat, in_feat)
 
     def _split_heads(self, x):
-        pass
+        batch_size, seq_len, _ = x.shape
+        x = x.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
 
-# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: edit swish, concatenate
+# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: edit swish, concatenate, gather

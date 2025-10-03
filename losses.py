@@ -8,7 +8,7 @@ def mae(pred: Tensor, true: Tensor):
     loss = (pred - true).abs().mean()
     return loss
 
-def binary_cross_entropy(pred: Tensor, true: Tensor, epsilon=1e-7):
+def binary_cross_entropy(pred: Tensor, true: Tensor, epsilon=1e-5):
     p = pred.clip(epsilon, 1 - epsilon)
     loss = -(true * p.log() + (1 - true) * (1 - p).log()).mean()
     return loss

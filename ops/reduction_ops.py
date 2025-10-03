@@ -9,7 +9,10 @@ class sum_:
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
         output = _bx.sum(x, axis=axes, keepdims=True)
-        save.x_shape = x.shape
+
+        if save.active:
+            save.x_shape = x.shape
+
         return output
 
     @staticmethod
@@ -23,7 +26,11 @@ class mean:
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
         output = _bx.mean(x, axis=axes, keepdims=True)
-        save.x_shape, save.axes = x.shape, axes
+
+        if save.active:
+            save.x_shape = x.shape
+            save.axes = axes
+
         return output
 
     @staticmethod
@@ -39,7 +46,11 @@ class min_:
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
         output = _bx.min(x, axis=axes, keepdims=True)
-        save.mask, save.axes = _bx.equal(x, output), axes # true where value == min
+
+        if save.active:
+            save.mask = _bx.equal(x, output)
+            save.axes = axes # true where value == min
+
         return output
 
     @staticmethod
@@ -54,7 +65,11 @@ class max_:
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
         output = _bx.max(x, axis=axes, keepdims=True)
-        save.mask, save.axes = _bx.equal(x, output), axes # true where value == max
+
+        if save.active:
+            save.mask = _bx.equal(x, output)
+            save.axes = axes # true where value == max
+
         return output
 
     @staticmethod
@@ -71,7 +86,11 @@ class softmax:
         shifted_logits = _bx.subtract(x, _bx.max(x, axis=axes, keepdims=True)) # shift logits trick
         exp_logits = _bx.exp(shifted_logits)
         output = _bx.divide(exp_logits, _bx.sum(exp_logits, axis=axes, keepdims=True))
-        save.axes, save.output = axes, output
+
+        if save.active:
+            save.axes = axes
+            save.output = output
+
         return output
 
     @staticmethod

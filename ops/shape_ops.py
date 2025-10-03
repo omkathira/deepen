@@ -16,7 +16,8 @@ class squeeze:
                 norm_axes = tuple(ax if ax >= 0 else ax + x.ndim for ax in axes) # handle multiple possible negative axes
                 output = _bx.squeeze(x, axis=norm_axes)
 
-        save.x_shape = x.shape
+        if save.active:
+            save.x_shape = x.shape
 
         return output
 
@@ -41,7 +42,8 @@ class unsqueeze:
             for ax in sorted(norm_axes, reverse=True):
                 output = _bx.expand_dims(output, axis=ax)
 
-        save.x_shape = x.shape
+        if save.active:
+            save.x_shape = x.shape
 
         return output
 
@@ -55,7 +57,10 @@ class transpose:
     @staticmethod
     def forward(save, x, axes=None):
         output = _bx.transpose(x, axes)
-        save.axes = axes
+
+        if save.active:
+            save.axes = axes
+
         return output
     
     @staticmethod
@@ -78,7 +83,11 @@ class concatenate:
     @staticmethod
     def forward(save, x, y, axes=None):
         output = _bx.concatenate([x, y], axis=axes)
-        save.x_end, save.axes = x.shape[axes], axes
+
+        if save.active:
+            save.x_end = x.shape[axes]
+            save.axes = axes
+
         return output
 
     @staticmethod
@@ -105,7 +114,10 @@ class reshape:
     @staticmethod
     def forward(save, x, shape):
         output = _bx.reshape(x, shape)
-        save.x_shape = x.shape
+
+        if save.active:
+            save.x_shape = x.shape
+
         return output
     
     @staticmethod

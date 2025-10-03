@@ -8,7 +8,11 @@ class add:
     @staticmethod
     def forward(save, x, y):
         output = _bx.add(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
     
     @staticmethod
@@ -22,7 +26,11 @@ class sub:
     @staticmethod
     def forward(save, x, y):
         output = _bx.subtract(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
     
     @staticmethod
@@ -36,8 +44,11 @@ class mul:
     @staticmethod
     def forward(save, x, y):
         output = _bx.multiply(x, y)
-        save.x, save.x_shape = x, x.shape
-        save.y, save.y_shape = y, y.shape
+        
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.y, save.y_shape = y, y.shape
+
         return output
     
     @staticmethod
@@ -51,8 +62,11 @@ class div:
     @staticmethod
     def forward(save, x, y):
         output = _bx.divide(x, y)
-        save.x, save.x_shape = x, x.shape
-        save.y, save.y_shape = y, y.shape
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.y, save.y_shape = y, y.shape
+        
         return output
     
     @staticmethod
@@ -66,7 +80,10 @@ class neg:
     @staticmethod
     def forward(save, x):
         output = _bx.multiply(x, -1)
-        save.x_shape = x.shape
+
+        if save.active:
+            save.x_shape = x.shape
+
         return output
     
     @staticmethod
@@ -79,7 +96,10 @@ class abs_:
     @staticmethod
     def forward(save, x):
         output = _bx.abs(x)
-        save.x, save.x_shape = x, x.shape
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+        
         return output
     
     @staticmethod
@@ -92,7 +112,11 @@ class pow_:
     @staticmethod
     def forward(save, x, n):
         output = _bx.power(x, n)
-        save.x, save.x_shape, save.n = x, x.shape, n
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.n = n
+
         return output
     
     @staticmethod
@@ -105,7 +129,11 @@ class exp:
     @staticmethod
     def forward(save, x):
         output = _bx.exp(x)
-        save.x_shape, save.output = x.shape, output
+
+        if save.active:
+            save.x_shape = x.shape
+            save.output = output
+        
         return output
     
     @staticmethod
@@ -119,7 +147,11 @@ class log:
     def forward(save, x, base=_bx.e):
         log_base = _bx.log(_bx.array(base, dtype=x.dtype))
         output = _bx.divide(_bx.log(x), log_base)
-        save.x, save.x_shape, save.log_base = x, x.shape, log_base
+
+        if save.active:
+            save.x, save.x_shape =  x, x.shape
+            save.log_base = log_base
+
         return output
     
     @staticmethod
@@ -132,12 +164,15 @@ class clip:
     @staticmethod
     def forward(save, x, min_val, max_val):
         output = _bx.clip(x, min_val, max_val)
-        save.x, save.x_shape = x, x.shape
-        save.min_val, save.max_val = min_val, max_val
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.min_val, save.max_val = min_val, max_val
+
         return output
     
     @staticmethod
     def backward(save, output_grad):
-        mask = _bx.cast((save.x >= save.min_val) & (save.x <= save.max_val), dtype=save.x.dtype)
-        dx = _reduce_grad(_bx.multiply(output_grad, mask), save.x_shape) # preserve dtype when applying mask
+        mask = ((save.x >= save.min_val) & (save.x <= save.max_val)).astype(save.x.dtype)
+        dx = _reduce_grad(_bx.multiply(output_grad, mask), save.x_shape)
         return dx, None, None

@@ -51,37 +51,39 @@ def _count_elements(shape, axes):
 
 # Class to hold intermediate values needed for many ops
 class Cache:
-    # Used in most ops
-    x: object = None
-    x_shape: object = None
+    __slots__ = (
+        # Controls cache state
+        'active',
 
-    y: object = None
-    y_shape: object = None
+        # Used in most ops
+        'x', 'x_shape',
+        'y', 'y_shape',
+        'output',
 
-    output: object = None
+        # Only used in pow
+        'n',
 
-    # Only used in pow
-    n: object = None
+        # Only used in log
+        'log_base',
 
-    # Only used in log
-    log_base: object = None
+        # Only used in clip
+        'min_val', 'max_val',
 
-    # Only used in clip
-    min_val: object = None
-    max_val: object = None
+        # Used in shape/reduction ops
+        'axes', 'mask',
 
-    # Only used in sigmoid
-    ones: object = None
+        # Only used in concatenate
+        'x_end',
 
-    # Only used in leaky_relu
-    neg_slope: object = None
+        # Only used in sigmoid
+        'ones',
 
-    # Used in shape/reduction ops
-    axes: object = None
-    mask: object = None
+        # Only used in leaky_relu
+        'neg_slope',
 
-    # Only used in concatenate
-    x_end: object = None
+        # Only used in dropout
+        'q'
+    )
 
-    # Only used in dropout
-    q: object = None
+    def __init__(self, active=True):
+        self.active = active

@@ -63,7 +63,7 @@ class Graph:
                 if parent.grad is None: # first time accumulating gradients
                     parent.grad = grad
                 else:
-                    parent.grad += grad # updating gradients
+                    parent.grad = parent.grad + grad # updating gradients
 
     def run(self, feed_dict):
         for ph_t, data in feed_dict.items():

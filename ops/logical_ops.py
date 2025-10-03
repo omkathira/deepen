@@ -8,7 +8,11 @@ class eq:
     @staticmethod
     def forward(save, x, y):
         output = _bx.equal(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+
         return output
 
     @staticmethod
@@ -22,7 +26,11 @@ class ne:
     @staticmethod
     def forward(save, x, y):
         output = _bx.not_equal(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -36,7 +44,11 @@ class lt:
     @staticmethod
     def forward(save, x, y):
         output = _bx.less(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -50,7 +62,11 @@ class le:
     @staticmethod
     def forward(save, x, y):
         output = _bx.less_equal(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -64,7 +80,11 @@ class gt:
     @staticmethod
     def forward(save, x, y):
         output = _bx.greater(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -78,7 +98,11 @@ class ge:
     @staticmethod
     def forward(save, x, y):
         output = _bx.greater_equal(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -92,7 +116,10 @@ class not_:
     @staticmethod
     def forward(save, x):
         output = _bx.logical_not(x)
-        save.x_shape = x.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            
         return output
 
     @staticmethod
@@ -105,7 +132,11 @@ class and_:
     @staticmethod
     def forward(save, x, y):
         output = _bx.logical_and(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+        
         return output
 
     @staticmethod
@@ -119,7 +150,11 @@ class or_:
     @staticmethod
     def forward(save, x, y):
         output = _bx.logical_or(x, y)
-        save.x_shape, save.y_shape = x.shape, y.shape
+
+        if save.active:
+            save.x_shape = x.shape
+            save.y_shape = y.shape
+            
         return output
 
     @staticmethod

@@ -49,11 +49,6 @@ class Tensor:
     
     @staticmethod
     def _from_op(op_cls, *args, **kwargs):
-        kwargs = {
-            k: tuple(v) if isinstance(v, list) else v # list mutability can be unsafe
-            for k, v in kwargs.items()
-        }
-
         args_list = []
         
         for arg in args:
@@ -64,6 +59,11 @@ class Tensor:
                 args_list.append((False, arr))
             else:
                 raise ValueError(f"unexpected positional argument {arg!r} of type {type(arg)}")
+        
+        kwargs = {
+            k: tuple(v) if isinstance(v, list) else v # list mutability can be unsafe
+            for k, v in kwargs.items()
+        }
 
         parents = tuple(t for is_ph, t in args_list if is_ph) # extract parent Tensors
         requires_grad = any(p.requires_grad for p in parents)
@@ -71,7 +71,7 @@ class Tensor:
         output = Tensor(data=None, requires_grad=requires_grad)
         output._op = op_cls
         output._parents = parents
-        output._save = Cache()
+        output._save = Cache(active=True)
         output._args = tuple(args_list)
         output._kwargs = kwargs
 
@@ -186,6 +186,7 @@ class Tensor:
     def swish(self): return Tensor._from_op(swish, self)
 
 class Parameter(Tensor):
+    # Class variables
     _default_requires_grad = True
 
     def __init__(self, data=None, requires_grad=_default_requires_grad):

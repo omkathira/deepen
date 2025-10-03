@@ -10,7 +10,11 @@ class dropout:
         u = _bx.random.uniform(size=x.shape, low=0.0, high=1.0, dtype=x.dtype)
         mask = _bx.less(u, q).astype(x.dtype)
         output = _bx.divide(_bx.multiply(x, mask), q)
-        save.q, save.mask = q, mask
+
+        if save.active:
+            save.q = q
+            save.mask = mask
+
         return output
 
     @staticmethod

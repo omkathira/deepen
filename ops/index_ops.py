@@ -7,7 +7,11 @@ class gather:
     @staticmethod
     def forward(save, x, indices):
         output = x[indices]
-        save.x_shape, save.indices = x.shape, indices
+
+        if save.active:
+            save.x_shape = x.shape
+            save.indices = indices
+
         return output
     
     @staticmethod

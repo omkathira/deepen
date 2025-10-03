@@ -1,4 +1,3 @@
-from ast import Pass
 from deepen.backend import active_backend as bx
 
 _bx = bx() # backend singleton
@@ -9,7 +8,11 @@ class sigmoid:
     def forward(save, x):
         ones = _bx.ones_like(x)
         output = _bx.divide(ones, _bx.add(ones, _bx.exp(_bx.multiply(x, -1))))
-        save.ones, save.output = ones, output
+
+        if save.active:
+            save.ones = ones
+            save.output = output
+
         return output
 
     @staticmethod
@@ -22,7 +25,11 @@ class tanh:
     @staticmethod
     def forward(save, x):
         output = _bx.tanh(x)
-        save.x, save.output = x, output
+
+        if save.active:
+            save.x = x
+            save.output = output
+        
         return output
 
     @staticmethod
@@ -35,7 +42,10 @@ class relu:
     @staticmethod
     def forward(save, x):
         output = _bx.maximum(0, x)
-        save.x = x
+
+        if save.active:
+            save.x = x
+
         return output
 
     @staticmethod
@@ -50,7 +60,11 @@ class leaky_relu:
     def forward(save, x, neg_slope=0.1):
         slope = _bx.array(neg_slope, dtype=x.dtype)
         output = _bx.maximum(_bx.multiply(x, slope), x)
-        save.x, save.slope = x, slope
+
+        if save.active:
+            save.x = x
+            save.slope = slope
+
         return output
 
     @staticmethod
@@ -70,7 +84,13 @@ class swish:
         ones = _bx.ones_like(x)
         sigmoid = _bx.divide(ones, _bx.add(ones, _bx.exp(_bx.multiply(x, -1))))
         output = _bx.multiply(x, sigmoid)
-        save.x, save.ones, save.sigmoid, save.output = x, ones, sigmoid, output
+
+        if save.active:
+            save.x = x
+            save.ones = ones
+            save.sigmoid = sigmoid
+            save.output = output
+
         return output
 
     @staticmethod

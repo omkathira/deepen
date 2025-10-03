@@ -8,8 +8,11 @@ class matmul:
     @staticmethod
     def forward(save, x, y):
         output = _bx.matmul(x, y)
-        save.x, save.x_shape = x, x.shape
-        save.y, save.y_shape = y, y.shape
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.y, save.y_shape = y, y.shape
+        
         return output
     
     @staticmethod
@@ -23,8 +26,11 @@ class outer:
     @staticmethod
     def forward(save, x, y):
         output = _bx.outer(x, y)
-        save.x, save.x_shape = x, x.shape
-        save.y, save.y_shape = y, y.shape
+
+        if save.active:
+            save.x, save.x_shape = x, x.shape
+            save.y, save.y_shape = y, y.shape
+        
         return output
     
     @staticmethod

@@ -4,6 +4,8 @@ _bx = bx() # backend singleton
 
 # Squeeze
 class squeeze:
+    _save_data = ('x_shape',)
+    
     @staticmethod
     def forward(save, x, axes=None):
         if axes is None:
@@ -28,6 +30,8 @@ class squeeze:
 
 # Unsqueeze
 class unsqueeze:
+    _save_data = ('x_shape',)
+
     @staticmethod
     def forward(save, x, axes=None):
         if axes is None:
@@ -54,6 +58,8 @@ class unsqueeze:
 
 # Transpose
 class transpose:
+    _save_data = ('axes',)
+
     @staticmethod
     def forward(save, x, axes=None):
         output = _bx.transpose(x, axes)
@@ -80,6 +86,8 @@ class transpose:
 
 # Concatenate
 class concatenate:
+    _save_data = ('x_end', 'axes')
+
     @staticmethod
     def forward(save, x, y, axes=None):
         output = _bx.concatenate([x, y], axis=axes)
@@ -111,6 +119,8 @@ class concatenate:
 
 # Reshape
 class reshape:
+    _save_data = ('x_shape',)
+    
     @staticmethod
     def forward(save, x, shape):
         output = _bx.reshape(x, shape)

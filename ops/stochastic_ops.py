@@ -4,6 +4,8 @@ _bx = bx() # backend singleton
 
 # Dropout
 class dropout:
+    _save_data = ('q', 'mask')
+
     @staticmethod
     def forward(save, x, p):
         q = 1.0 - p
@@ -24,6 +26,8 @@ class dropout:
 
 # Gaussian noise
 class gaussian_noise:
+    _save_fields = ()
+
     @staticmethod
     def forward(save, x, mean=0.0, std=0.1):
         noise = _bx.random.normal(size=x.shape, loc=mean, scale=std, dtype=x.dtype)

@@ -5,6 +5,8 @@ _bx = bx() # backend singleton
 
 # Equal to
 class eq:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.equal(x, y)
@@ -23,6 +25,8 @@ class eq:
 
 # Not equal to
 class ne:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.not_equal(x, y)
@@ -41,6 +45,8 @@ class ne:
 
 # Less than
 class lt:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.less(x, y)
@@ -59,6 +65,8 @@ class lt:
 
 # Less than or equal to
 class le:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.less_equal(x, y)
@@ -77,6 +85,8 @@ class le:
 
 # Greater than
 class gt:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.greater(x, y)
@@ -95,6 +105,8 @@ class gt:
 
 # Greater than or equal to
 class ge:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.greater_equal(x, y)
@@ -113,6 +125,8 @@ class ge:
 
 # Not
 class not_:
+    _save_data = ('x_shape',)
+    
     @staticmethod
     def forward(save, x):
         output = _bx.logical_not(x)
@@ -129,6 +143,8 @@ class not_:
 
 # And
 class and_:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.logical_and(x, y)
@@ -147,6 +163,8 @@ class and_:
 
 # Or
 class or_:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.logical_or(x, y)

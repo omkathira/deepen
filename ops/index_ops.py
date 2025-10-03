@@ -4,6 +4,8 @@ _bx = bx() # backend singleton
 
 # Gather
 class gather:
+    _save_data = ('x_shape', 'indices')
+    
     @staticmethod
     def forward(save, x, indices):
         output = x[indices]

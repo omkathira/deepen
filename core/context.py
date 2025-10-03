@@ -1,6 +1,5 @@
 from deepen.core.tensor import Tensor
 
-# Eager mode
 class _EagerMode:
     def __init__(self):
         self._prev_state = False
@@ -13,10 +12,10 @@ class _EagerMode:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         Tensor._eager_mode = self._prev_state
 
+# Enable eager execution
 def eager():
     return _EagerMode()
 
-# No grad mode
 class _NoGradMode:
     def __init__(self):
         self._prev_state = False
@@ -29,7 +28,12 @@ class _NoGradMode:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         Tensor._no_grad_mode = self._prev_state
 
+# Disable gradient tracking
 def no_grad():
     return _NoGradMode()
 
-__all__ = ['eager', 'no_grad']
+# Enable functional mode
+def set_functional_mode(func_mode: bool):
+    Tensor.functional_mode(func_mode)
+
+__all__ = ['eager', 'no_grad', 'set_functional_mode']

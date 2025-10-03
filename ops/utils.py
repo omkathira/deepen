@@ -49,41 +49,39 @@ def _count_elements(shape, axes):
 
     return size
 
-# Class to hold intermediate values needed for many ops
-class Cache:
-    __slots__ = (
-        # Controls cache state
-        'active',
+def _make_cache(op_cls, active):
+    fields = getattr(op_cls, '_save_data')
+    cache = type(f'{op_cls.__name__}_cache', (), {'__slots__': ('active',) + fields})
+    save = cache()
+    save.active = active
+    return save
 
-        # Used in most ops
-        'x', 'x_shape',
-        'y', 'y_shape',
-        'output',
+# Class to control Tensor immutability in functional mode
+class ImmutableData:
+    def __init__(self, arr):
+        self._arr = arr
 
-        # Only used in pow
-        'n',
+    @property
+    def size(self):
+        return self._arr.size
 
-        # Only used in log
-        'log_base',
+    @property
+    def shape(self):
+        return self._arr.shape
 
-        # Only used in clip
-        'min_val', 'max_val',
-
-        # Used in shape/reduction ops
-        'axes', 'mask',
-
-        # Only used in concatenate
-        'x_end',
-
-        # Only used in sigmoid
-        'ones',
-
-        # Only used in leaky_relu
-        'neg_slope',
-
-        # Only used in dropout
-        'q'
-    )
-
-    def __init__(self, active=True):
-        self.active = active
+    @property
+    def ndim(self):
+        return self._arr.ndim
+        
+    @property
+    def dtype(self):
+        return self._arr.dtype
+    
+    def __getitem__(self, key):
+        return self._arr[key]
+    
+    def __setitem__(self, key, value):
+        raise ValueError("cannot modify .data of an immutable Tensor")
+    
+    def __array__(self):
+        return self._arr.copy()

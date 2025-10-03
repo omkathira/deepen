@@ -2,7 +2,7 @@ import importlib
 
 _current_backend = None
 
-def use_backend(backend: str):
+def use_backend(backend):
     global _current_backend
 
     if backend == "numpy":

@@ -5,6 +5,8 @@ _bx = bx() # backend singleton
 
 # Element-wise addition
 class add:
+    _save_data = ('x_shape', 'y_shape')
+    
     @staticmethod
     def forward(save, x, y):
         output = _bx.add(x, y)
@@ -23,6 +25,8 @@ class add:
 
 # Element-wise subtraction
 class sub:
+    _save_data = ('x_shape', 'y_shape')
+
     @staticmethod
     def forward(save, x, y):
         output = _bx.subtract(x, y)
@@ -41,6 +45,8 @@ class sub:
     
 # Element-wise multiplication
 class mul:
+    _save_data = ('x', 'x_shape', 'y', 'y_shape')
+
     @staticmethod
     def forward(save, x, y):
         output = _bx.multiply(x, y)
@@ -59,6 +65,8 @@ class mul:
 
 # Element-wise division
 class div:
+    _save_data = ('x', 'x_shape', 'y', 'y_shape')
+
     @staticmethod
     def forward(save, x, y):
         output = _bx.divide(x, y)
@@ -77,6 +85,8 @@ class div:
 
 # Negation
 class neg:
+    _save_data = ('x_shape',)
+
     @staticmethod
     def forward(save, x):
         output = _bx.multiply(x, -1)
@@ -93,6 +103,8 @@ class neg:
 
 # Absolute value
 class abs_: 
+    _save_data = ('x', 'x_shape')
+
     @staticmethod
     def forward(save, x):
         output = _bx.abs(x)
@@ -109,6 +121,8 @@ class abs_:
 
 # Power (handles roots)
 class pow_:
+    _save_data = ('x', 'x_shape', 'n')
+
     @staticmethod
     def forward(save, x, n):
         output = _bx.power(x, n)
@@ -126,6 +140,8 @@ class pow_:
 
 # Exponentiation
 class exp:
+    _save_data = ('x_shape', 'output')
+
     @staticmethod
     def forward(save, x):
         output = _bx.exp(x)
@@ -143,6 +159,8 @@ class exp:
 
 # Logarithm
 class log:
+    _save_data = ('x', 'x_shape', 'log_base')
+
     @staticmethod
     def forward(save, x, base=_bx.e):
         log_base = _bx.log(_bx.array(base, dtype=x.dtype))
@@ -161,6 +179,8 @@ class log:
 
 # Clip
 class clip:
+    _save_data = ('x', 'x_shape', 'min_val', 'max_val')
+
     @staticmethod
     def forward(save, x, min_val, max_val):
         output = _bx.clip(x, min_val, max_val)

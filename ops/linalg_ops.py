@@ -5,6 +5,8 @@ _bx = bx() # backend singleton
 
 # Inner product
 class matmul:
+    _save_data = ('x', 'x_shape', 'y', 'y_shape')
+
     @staticmethod
     def forward(save, x, y):
         output = _bx.matmul(x, y)
@@ -23,6 +25,8 @@ class matmul:
 
 # Outer product
 class outer:
+    _save_data = ('x', 'x_shape', 'y', 'y_shape')
+
     @staticmethod
     def forward(save, x, y):
         output = _bx.outer(x, y)

@@ -18,7 +18,7 @@ class Graph:
         for t in self._nodes:
             t._reset_grad()
 
-    def _traverse(self, t: Tensor, visited, topo_order):
+    def _traverse(self, t: Tensor, visited: set, topo_order: list):
         if t in visited or t._has_no_parents(): # ignore tensors that weren't generated from an upstream operation
             return
         
@@ -42,13 +42,9 @@ class Graph:
             if t._has_no_parents():
                 continue
             
-            # rebuild positional arguments
-            args = [
-                arg.data if is_tensor else arg
-                for is_tensor, arg in t._args
-            ]
+            args = [arg.data if is_tensor else arg for is_tensor, arg in t._args] # rebuild positional arguments
 
-            t.data = t._op.forward(t._save, *args, **t._kwargs) # execute the operation's forward method
+            t.data = t._op.forward(t._save, *args, **t._kwargs)
 
     def _backward(self):
         for t in reversed(self._nodes):
@@ -63,9 +59,9 @@ class Graph:
                 if parent.grad is None: # first time accumulating gradients
                     parent.grad = grad
                 else:
-                    parent.grad = parent.grad + grad # updating gradients
+                    parent.grad += grad # accumulating gradients
 
-    def run(self, feed_dict):
+    def run(self, feed_dict: dict):
         for ph_t, data in feed_dict.items():
             ph_t.data = data
 

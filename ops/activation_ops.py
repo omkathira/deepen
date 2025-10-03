@@ -4,6 +4,8 @@ _bx = bx() # backend singleton
 
 # Sigmoid
 class sigmoid:
+    _save_data = ('ones', 'output')
+
     @staticmethod
     def forward(save, x):
         ones = _bx.ones_like(x)
@@ -22,6 +24,8 @@ class sigmoid:
 
 # Tanh
 class tanh:
+    _save_data = ('x', 'output')
+    
     @staticmethod
     def forward(save, x):
         output = _bx.tanh(x)
@@ -39,6 +43,8 @@ class tanh:
 
 # ReLU
 class relu:
+    _save_data = ('x',)
+
     @staticmethod
     def forward(save, x):
         output = _bx.maximum(0, x)
@@ -56,6 +62,8 @@ class relu:
 
 # Leaky ReLU
 class leaky_relu:
+    _save_data = ('x', 'slope')
+
     @staticmethod
     def forward(save, x, neg_slope=0.1):
         slope = _bx.array(neg_slope, dtype=x.dtype)
@@ -73,12 +81,10 @@ class leaky_relu:
         dx = _bx.multiply(output_grad, grad_mask)
         return dx,
 
-# GELU
-class gelu:
-    pass
-
 # Swish
 class swish:
+    _save_data = ('x', 'ones', 'sigmoid', 'output')
+
     @staticmethod
     def forward(save, x):
         ones = _bx.ones_like(x)

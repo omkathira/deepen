@@ -5,6 +5,8 @@ _bx = bx() # backend singleton
 
 # Summation
 class sum_:
+    _save_data = ('x_shape',)
+
     @staticmethod
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
@@ -22,6 +24,8 @@ class sum_:
 
 # Mean (average)
 class mean:
+    _save_data = ('x_shape', 'axes')
+
     @staticmethod
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
@@ -42,6 +46,8 @@ class mean:
 
 # Minimum
 class min_:
+    _save_data = ('mask', 'axes')
+
     @staticmethod
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
@@ -61,6 +67,8 @@ class min_:
 
 # Maximum
 class max_:
+    _save_data = ('mask', 'axes')
+
     @staticmethod
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)
@@ -80,6 +88,8 @@ class max_:
 
 # Softmax
 class softmax:
+    _save_data = ('axes', 'output')
+
     @staticmethod
     def forward(save, x, axes=None):
         axes = _normalize_axes(x, axes)

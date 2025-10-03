@@ -1,4 +1,3 @@
-from numbers import Number
 from deepen.backend import active_backend as bx
 from deepen.ops.ewise_ops import *
 from deepen.ops.logical_ops import *
@@ -7,24 +6,35 @@ from deepen.ops.shape_ops import *
 from deepen.ops.reduction_ops import *
 from deepen.ops.linalg_ops import *
 from deepen.ops.activation_ops import *
-from deepen.ops.utils import Cache
+from deepen.ops.utils import _make_cache, ImmutableData
 
 _bx = bx() # backend singleton
 
 class Tensor:
     # Class variables
     _default_requires_grad = False
+    _trace_depth = 0
 
     # Global contexts
     _eager_mode = False
     _no_grad_mode = False
+    _func_mode = False
+    
+    @classmethod
+    def functional_mode(cls, func_mode):
+        cls._func_mode = func_mode
     
     def __init__(self, data=None, requires_grad=_default_requires_grad):
-        if Tensor._no_grad_mode:
-            requires_grad = False
+        if data is None and Tensor._func_mode:
+            raise ValueError("Tensor must contain data")
 
         if data is not None:
             data = _bx.array(data)
+            if Tensor._func_mode:
+                data = ImmutableData(data)
+
+        if Tensor._no_grad_mode:
+            requires_grad = False
 
         # tensor attributes (accessible to the user)
         self.data = data
@@ -42,36 +52,71 @@ class Tensor:
         return id(self)
 
     @property
+    def size(self):
+        if self.data is None:
+            raise AttributeError("cannot access .size for a Tensor with no data")
+        return self.data.size
+
+    @property
     def shape(self):
         if self.data is None:
             raise AttributeError("cannot access .shape for a Tensor with no data")
         return self.data.shape
+    
+    @property
+    def ndim(self):
+        if self.data is None:
+            raise AttributeError("cannot access .ndim for a Tensor with no data")
+        return self.data.ndim
+
+    @property
+    def dtype(self):
+        if self.data is None:
+            raise AttributeError("cannot access .dtype for a Tensor with no data")
+        return self.data.dtype
+    
+    def __setitem__(self, key, value):
+        if Tensor._func_mode:
+            raise ValueError("cannot modify an immutable Tensor")
+        self.data[key] = value
+    
+    def __getitem__(self, key):
+        return self.data[key]
+    
+    def __array__(self, dtype=None):
+        return _bx.asarray(self.data, dtype=dtype)
     
     @staticmethod
     def _from_op(op_cls, *args, **kwargs):
         args_list = []
         
         for arg in args:
-            if isinstance(arg, Tensor): # placeholder for a Tensor (true)
-                args_list.append((True, arg))
-            elif isinstance(arg, Number) or isinstance(arg, _bx.ndarray): # placeholder for a literal (false)
-                arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg)
+            if isinstance(arg, Tensor):
+                args_list.append((True, arg)) # placeholder for a Tensor (True)
+            elif isinstance(arg, (tuple, list)) and all(isinstance(e, (int, float, bool)) for e in arg):
+                tup = tuple(arg)
+                args_list.append((False, tup)) # placeholder for static metadata (False)
+            elif isinstance(arg, (int, float, bool)) or isinstance(arg, _bx.ndarray):
+                arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg) # placeholder for numeric literals (False)
                 args_list.append((False, arr))
             else:
                 raise ValueError(f"unexpected positional argument {arg!r} of type {type(arg)}")
         
-        kwargs = {
-            k: tuple(v) if isinstance(v, list) else v # list mutability can be unsafe
-            for k, v in kwargs.items()
-        }
+        kwargs = {k: tuple(v) if isinstance(v, list) else v for k, v in kwargs.items()} # list mutability can be unsafe
 
-        parents = tuple(t for is_ph, t in args_list if is_ph) # extract parent Tensors
+        if Tensor._func_mode:
+            args = [arg.data if is_tensor else arg for is_tensor, arg in args_list]
+            save = _make_cache(op_cls, False)
+            data = op_cls.forward(save, *args, **kwargs)
+            return Tensor(data, requires_grad=False)
+
+        parents = tuple(arg for is_tensor, arg in args_list if is_tensor) # extract parent Tensors
         requires_grad = any(p.requires_grad for p in parents)
 
         output = Tensor(data=None, requires_grad=requires_grad)
         output._op = op_cls
         output._parents = parents
-        output._save = Cache(active=True)
+        output._save = _make_cache(op_cls, True)
         output._args = tuple(args_list)
         output._kwargs = kwargs
 
@@ -79,11 +124,7 @@ class Tensor:
             if any(isinstance(parent, Parameter) for parent in output._parents):
                 raise ValueError("cannot create/modify Parameter(s) in eager mode")
 
-            args = [
-                arg.data if isinstance(arg, Tensor) else arg
-                for arg in args
-            ]
-
+            args = [arg.data if isinstance(arg, Tensor) else arg for arg in args]
             output.data = op_cls.forward(output._save, *args, **kwargs)
 
         return output
@@ -194,6 +235,8 @@ class Parameter(Tensor):
             raise ValueError("cannot create/modify Parameter(s) in eager mode")
         if Tensor._no_grad_mode:
             raise ValueError("cannot create/modify Parameter(s) in no_grad mode")
+        if Tensor._func_mode:
+            raise ValueError("cannot create/modify Parameter(s) in functional mode")
 
         super().__init__(data, requires_grad)
 

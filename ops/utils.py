@@ -27,7 +27,7 @@ def _reduce_grad(grad, target_shape):
     return reduced_grad
 
 # Internal helper functions
-def _normalize_axes(x, axes):    
+def _normalize_axes(x, axes):
     if axes is None:
         return None
     
@@ -50,38 +50,18 @@ def _count_elements(shape, axes):
     return size
 
 def _make_cache(op_cls, active):
-    fields = getattr(op_cls, '_save_data')
-    cache = type(f'{op_cls.__name__}_cache', (), {'__slots__': ('active',) + fields})
+    fields = ('active',) + (getattr(op_cls, '_save_data') if active else ())
+    cache = type(f'{op_cls.__name__}_cache', (), {'__slots__': fields})
     save = cache()
     save.active = active
     return save
 
-# Class to control Tensor immutability in functional mode
-class ImmutableData:
-    def __init__(self, arr):
-        self._arr = arr
-
-    @property
-    def size(self):
-        return self._arr.size
-
-    @property
-    def shape(self):
-        return self._arr.shape
-
-    @property
-    def ndim(self):
-        return self._arr.ndim
-        
-    @property
-    def dtype(self):
-        return self._arr.dtype
-    
-    def __getitem__(self, key):
-        return self._arr[key]
-    
-    def __setitem__(self, key, value):
-        raise ValueError("cannot modify .data of an immutable Tensor")
-    
-    def __array__(self):
-        return self._arr.copy()
+def _compute_initializer_fans(shape):
+    if len(shape) == 2: # for linear layers, (fan_in, fan_out)
+        fan_in, fan_out = shape
+    elif len(shape) == 4: # for convolutional layers, (num_filters, C, k_h, k_w)
+        num_filters, in_ch, k_h, k_w = shape
+        fan_in, fan_out = in_ch * k_h * k_w,  num_filters * k_h * k_w
+    else:
+        raise ValueError("unsupported shape for initializer")
+    return fan_in, fan_out

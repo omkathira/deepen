@@ -1,19 +1,20 @@
 from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor, Parameter
+from deepen.ops.linalg_ops import _im2col
 from deepen.ops.stochastic_ops import *
 
 _bx = bx() # backend singleton
 
 class Layer:
     def __init__(self):
-        self._parameters = dict()
-        self._layers = dict()
-    
+        self._layers = {}
+        self._parameters = {}
+
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
 
     def __setattr__(self, name, value): 
-        if isinstance(value, Layer): # register sublayers
+        if isinstance(value, Layer): # register layers
             self._layers[name] = value
         elif isinstance(value, Parameter): # register parameters
             self._parameters[name] = value
@@ -21,10 +22,10 @@ class Layer:
         super().__setattr__(name, value)
 
     def parameters(self):
-        params = list(self._parameters.values())
+        for p in self._parameters.values():
+            yield p
         for layer in self._layers.values():
-            params.extend(layer.parameters())
-        return params
+            yield from layer.parameters()
 
 class Linear(Layer):
     def __init__(self, in_feat, out_feat, weight_init="uniform", bias=True, bias_init="zeros"):
@@ -43,28 +44,6 @@ class Linear(Layer):
 
     def forward(self, t):
         output = t.matmul(self.weights)
-        return output + self.bias if self.bias is not None else output
-
-class Quadratic(Layer):
-    def __init__(self, in_feat, out_feat, weight_init="uniform", bias=True, bias_init="zeros"):
-        super().__init__()
-        weight_init_fn = getattr(Parameter, weight_init, None)
-        if not callable(weight_init_fn):
-            raise ValueError(f"unknown weight initializer")
-        
-        self.quad_weights = weight_init_fn((in_feat, in_feat))
-        self.lin_weights = weight_init_fn((in_feat, out_feat))
-
-        bias_init_fn = getattr(Parameter, bias_init, None)
-        if not callable(bias_init_fn):
-            raise ValueError(f"unknown bias initializer")
-        
-        self.bias = bias_init_fn((1, out_feat)) if bias else None
-
-    def forward(self, t):
-        quad_output = (t.matmul(self.quad_weights) * t).sum(axes=1).reshape(-1, 1)
-        lin_output = t.matmul(self.lin_weights)
-        output = quad_output + lin_output
         return output + self.bias if self.bias is not None else output
 
 class Dropout(Layer):
@@ -109,7 +88,18 @@ class LayerNorm1d(Layer):
         return output + self.bias if self.bias is not None else output
 
 class LayerNorm2d(Layer):
-    pass
+    def __init__(self, in_channels, bias=True, epsilon=1e-5):
+        super().__init__()
+        self.weights = Parameter.ones((1, in_channels, 1, 1))
+        self.bias = Parameter.zeros((1, in_channels, 1, 1)) if bias else None
+        self.epsilon = epsilon
+
+    def forward(self, t):
+        mean = t.mean(axes=1)
+        var = ((t - mean) ** 2).mean(axes=1)
+        norm = (t - mean) / (var + self.epsilon) ** 0.5
+        output = self.weights * norm
+        return output + self.bias if self.bias is not None else output
 
 class BatchNorm1d(Layer):
     def __init__(self, in_feat, bias=True, momentum=0.9, train=True, epsilon=1e-5):
@@ -139,18 +129,67 @@ class BatchNorm1d(Layer):
         return output + self.bias if self.bias is not None else output
 
 class BatchNorm2d(Layer):
-    pass
+    def __init__(self, in_channels, bias=True, momentum=0.9, train=True, epsilon=1e-5):
+        super().__init__()
+        self.weights = Parameter.ones((1, in_channels, 1, 1))
+        self.bias = Parameter.zeros((1, in_channels, 1, 1)) if bias else None
+        self.momentum = momentum
+        self.train = train
+        self.epsilon = epsilon
 
-class Conv1d(Layer):
-    pass
+        self.running_mean = Tensor.zeros((1, in_channels, 1, 1))
+        self.running_var = Tensor.ones((1, in_channels, 1, 1))
+
+    def forward(self, t):
+        if self.train:
+            mean = t.mean(axes=(0, 2, 3))
+            var = ((t - mean) ** 2).mean(axes=(0, 2, 3))
+
+            self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean
+            self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var
+
+            norm = (t - mean) / (var + self.epsilon) ** 0.5
+        else:
+            norm = (t - self.running_mean) / (self.running_var + self.epsilon) ** 0.5
+
+        output = self.weights * norm
+        return output + self.bias if self.bias is not None else output
 
 class Conv2d(Layer):
-    pass
+    def __init__(self, input_shape, num_filters, kernel_size=(3, 3), stride=1, padding=1, weight_init="uniform", bias=True, bias_init="zeros"):
+        super().__init__()
+        self.C, self.H, self.W = input_shape
+        self.num_filters = num_filters
+        self.k_h, self.k_w = kernel_size
+        self.stride = stride
+        self.padding = padding
 
-class Pool1d(Layer):
-    pass
+        weight_init_fn = getattr(Parameter, weight_init, None)
+        if not callable(weight_init_fn):
+            raise ValueError(f"unknown weight initializer")
+        
+        self.weights = weight_init_fn((num_filters, self.C, self.k_h, self.k_w))
 
-class Pool2d(Layer):
+        bias_init_fn = getattr(Parameter, bias_init, None)
+        if not callable(bias_init_fn):
+            raise ValueError(f"unknown bias initializer")
+        
+        self.bias = bias_init_fn((1, num_filters, 1, 1)) if bias else None
+    
+    def forward(self, t):
+        N, _, H, W = t.shape
+
+        H_out = (H + 2 * self.padding - self.k_h) // self.stride + 1
+        W_out = (W + 2 * self.padding - self.k_w) // self.stride + 1
+
+        im2col_output = Tensor._from_op(_im2col, t, k_h=self.k_h, k_w=self.k_w, stride=self.stride, padding=self.padding)
+        W_flat = self.weights.reshape(self.num_filters, -1)
+
+        output = W_flat.matmul(im2col_output)
+        output = output.reshape(self.num_filters, H_out, W_out, N).transpose((3, 0, 1, 2))
+        return output + self.bias if self.bias is not None else output
+
+class MaxPool2d(Layer):
     pass
 
 class Embedding(Layer):
@@ -165,8 +204,8 @@ class Embedding(Layer):
         
         self.weights = weight_init_fn((vocab_size, latent_feat))
     
-    def forward(self, x):
-        return self.weights.gather(x)
+    def forward(self, t):
+        return self.weights.gather(t)
 
 class PositionalEncoding(Layer):
     def __init__(self, seq_len, latent_feat):
@@ -192,8 +231,8 @@ class MultiHeadAttention(Layer):
 
         self.out_proj = Linear(latent_feat, in_feat)
 
-    def _split_heads(self, x):
-        batch_size, seq_len, _ = x.shape
-        x = x.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
+    def _split_heads(self, t):
+        batch_size, seq_len, _ = t.shape
+        t = t.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
 
 # soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: edit swish, concatenate, gather

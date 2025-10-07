@@ -5,8 +5,11 @@ _bx = bx() # backend singleton
 
 class Graph:
     def __init__(self, root: Tensor):
+        self._nodes = {}
+        self._topo_order = []
+
         self._clear_computed_data(root)
-        self._nodes = self._topo_sort(root)
+        self._topo_sort(root)
 
     def _clear_computed_data(self, t):
         if t._op is not None:
@@ -14,32 +17,39 @@ class Graph:
             for parent in t._parents:
                 self._clear_computed_data(parent)
 
-    def _zero_grad(self):
-        for t in self._nodes:
-            t._reset_grad()
-
-    def _traverse(self, t: Tensor, visited: set, topo_order: list):
-        if t in visited or t._has_no_parents(): # ignore tensors that weren't generated from an upstream operation
+    def _traverse(self, t: Tensor, visited):
+        if id(t) in visited:
             return
         
-        visited.add(t)
+        visited.add(id(t))
         
         for parent in t._parents:
-            self._traverse(parent, visited, topo_order)
+            self._traverse(parent, visited)
 
-        topo_order.append(t)
+        self._nodes[id(t)] = {
+            'tensor' : t,
+            'parents' : tuple(id(parent) for parent in t._parents),
+            'children' : [],
+        }
 
-    def _topo_sort(self, root: Tensor): # build a node dependency-based execution order
+        self._topo_order.append(id(t))
+
+        for parent in t._parents:
+            self._nodes[id(parent)]['children'].append(id(t))
+
+    def _topo_sort(self, root: Tensor): # build the execution order
         visited = set()
-        topo_order = []
+        self._traverse(root, visited)
 
-        self._traverse(root, visited, topo_order)
-
-        return topo_order
+    def _zero_grad(self):
+        for t_id in self._topo_order:
+            self._nodes[t_id]['tensor']._reset_grad()
 
     def _forward(self):
-        for t in self._nodes:
-            if t._has_no_parents():
+        for t_id in self._topo_order:
+            t = self._nodes[t_id]['tensor']
+
+            if t._has_no_op():
                 continue
             
             args = [arg.data if is_tensor else arg for is_tensor, arg in t._args] # rebuild positional arguments
@@ -47,8 +57,10 @@ class Graph:
             t.data = t._op.forward(t._save, *args, **t._kwargs)
 
     def _backward(self):
-        for t in reversed(self._nodes):
-            if not t._can_backprop():
+        for t_id in reversed(self._topo_order):
+            t = self._nodes[t_id]['tensor']
+
+            if not t._can_send_grad():
                 continue
 
             grads = t._op.backward(t._save, t.grad)
@@ -61,7 +73,7 @@ class Graph:
                 else:
                     parent.grad += grad # accumulating gradients
 
-    def run(self, feed_dict: dict):
+    def run(self, feed_dict):
         for ph_t, data in feed_dict.items():
             ph_t.data = data
 
@@ -69,8 +81,15 @@ class Graph:
 
         self._forward()
 
-        self._nodes[-1].grad = _bx.ones_like(self._nodes[-1].data) # seed loss
+        root_t_id = self._topo_order[-1]
+        root_t = self._nodes[root_t_id]['tensor']
 
-        self._backward()
+        if Tensor._eager_mode:
+            return root_t
 
-        return self._nodes[-1]
+        if root_t.requires_grad:
+            root_t.grad = _bx.ones_like(root_t.data) # seed loss
+
+            self._backward()
+
+        return root_t

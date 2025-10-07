@@ -6,34 +6,20 @@ from deepen.ops.shape_ops import *
 from deepen.ops.reduction_ops import *
 from deepen.ops.linalg_ops import *
 from deepen.ops.activation_ops import *
-from deepen.ops.utils import _make_cache, ImmutableData
+from deepen.ops.utils import _make_cache, _compute_initializer_fans
 
 _bx = bx() # backend singleton
 
 class Tensor:
-    # Class variables
-    _default_requires_grad = False
-    _trace_depth = 0
-
     # Global contexts
     _eager_mode = False
     _no_grad_mode = False
-    _func_mode = False
     
-    @classmethod
-    def functional_mode(cls, func_mode):
-        cls._func_mode = func_mode
-    
-    def __init__(self, data=None, requires_grad=_default_requires_grad):
-        if data is None and Tensor._func_mode:
-            raise ValueError("Tensor must contain data")
-
+    def __init__(self, data=None, requires_grad=True):
         if data is not None:
             data = _bx.array(data)
-            if Tensor._func_mode:
-                data = ImmutableData(data)
 
-        if Tensor._no_grad_mode:
+        if Tensor._eager_mode or Tensor._no_grad_mode:
             requires_grad = False
 
         # tensor attributes (accessible to the user)
@@ -41,12 +27,15 @@ class Tensor:
         self.grad = None
         self.requires_grad = requires_grad
 
-        # important attributes for the computation graph
+        # attributes for the computation graph
         self._op = None # the operation that made this tensor
-        self._parents = None # a tuple of parent tensors
+        self._parents = () # a tuple of parent tensors
         self._save = None # intermediate values stored in an operation class' forward (needed by its backward)
         self._args = None # arguments that are data we pass through the neural network
-        self._kwargs = None # arguments that aren't like the above (like axes, shape, etc)
+        self._kwargs = None # arguments that aren't like the above (things like axes, shape, etc)
+
+        # attributes for function decorators
+        self._is_immutable = False
     
     def __hash__(self): # __eq__ is used as a logical operation so we need to define __hash__
         return id(self)
@@ -74,15 +63,27 @@ class Tensor:
         if self.data is None:
             raise AttributeError("cannot access .dtype for a Tensor with no data")
         return self.data.dtype
-    
+
+    def __getitem__(self, key):
+        if self.data is None:
+            raise AttributeError("cannot access .__getitem__ for a Tensor with no data")
+        view = object.__new__(Tensor) # create a simple view
+        view.data = self.data[key]
+        view.grad = self.grad[key] if self.grad is not None else None
+        view.requires_grad = False
+        view._is_immutable = self._is_immutable
+        return view
+
     def __setitem__(self, key, value):
-        if Tensor._func_mode:
+        if self._is_immutable:
             raise ValueError("cannot modify an immutable Tensor")
+        if self.data is None:
+            raise AttributeError("cannot access .__setitem__ for a Tensor with no data")
         self.data[key] = value
     
-    def __getitem__(self, key):
-        return self.data[key]
-    
+    def __repr__(self):
+        return str(self.data)
+
     def __array__(self, dtype=None):
         return _bx.asarray(self.data, dtype=dtype)
     
@@ -97,21 +98,24 @@ class Tensor:
                 tup = tuple(arg)
                 args_list.append((False, tup)) # placeholder for static metadata (False)
             elif isinstance(arg, (int, float, bool)) or isinstance(arg, _bx.ndarray):
-                arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg) # placeholder for numeric literals (False)
-                args_list.append((False, arr))
+                arr = arg if isinstance(arg, _bx.ndarray) else _bx.array(arg)
+                args_list.append((False, arr)) # placeholder for numeric literals (False)
             else:
                 raise ValueError(f"unexpected positional argument {arg!r} of type {type(arg)}")
         
         kwargs = {k: tuple(v) if isinstance(v, list) else v for k, v in kwargs.items()} # list mutability can be unsafe
 
-        if Tensor._func_mode:
-            args = [arg.data if is_tensor else arg for is_tensor, arg in args_list]
-            save = _make_cache(op_cls, False)
-            data = op_cls.forward(save, *args, **kwargs)
-            return Tensor(data, requires_grad=False)
-
         parents = tuple(arg for is_tensor, arg in args_list if is_tensor) # extract parent Tensors
-        requires_grad = any(p.requires_grad for p in parents)
+        requires_grad = any(parent.requires_grad for parent in parents)
+
+        if Tensor._eager_mode:
+            args = [arg.data if isinstance(arg, Tensor) else arg for arg in args]
+
+            output = Tensor(data=None, requires_grad=False)
+            output._save = _make_cache(op_cls, False)
+            output.data = op_cls.forward(output._save, *args, **kwargs)
+
+            return output
 
         output = Tensor(data=None, requires_grad=requires_grad)
         output._op = op_cls
@@ -120,26 +124,19 @@ class Tensor:
         output._args = tuple(args_list)
         output._kwargs = kwargs
 
-        if Tensor._eager_mode:
-            if any(isinstance(parent, Parameter) for parent in output._parents):
-                raise ValueError("cannot create/modify Parameter(s) in eager mode")
-
-            args = [arg.data if isinstance(arg, Tensor) else arg for arg in args]
-            output.data = op_cls.forward(output._save, *args, **kwargs)
-
         return output
 
-    # Internal helper functions
+    # Hidden helper functions
     def _reset_grad(self):
         self.grad = None
 
-    def _has_no_parents(self):
-        return True if self._op is None else False
+    def _has_no_op(self):
+        return self._op is None
 
-    def _can_backprop(self): # checks if a tensor can send gradients to its parents
-        return self.requires_grad and self.grad is not None
+    def _can_send_grad(self): # checks if a tensor can send gradients to its parents
+        return self.requires_grad and self.grad is not None and self._op is not None
 
-    def _can_receive_grad(self, grad): # checks if a tensor can recieve a gradient from its child
+    def _can_receive_grad(self, grad): # checks if a tensor can recieve gradients from its children
         return self.requires_grad and grad is not None
 
     # Exposed helper functions
@@ -148,29 +145,53 @@ class Tensor:
     
     # Tensor creation/initialization methods
     @classmethod
-    def zeros(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def zeros(cls, shape, dtype=_bx.float32, requires_grad=True):
         return cls(_bx.zeros(shape=shape, dtype=dtype), requires_grad=requires_grad)
 
     @classmethod
-    def ones(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def ones(cls, shape, dtype=_bx.float32, requires_grad=True):
         return cls(_bx.ones(shape=shape, dtype=dtype), requires_grad=requires_grad)
 
     @classmethod
-    def constant(cls, shape, value, dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def constant(cls, shape, value, dtype=_bx.float32, requires_grad=True):
         return cls(_bx.full(shape=shape, fill_value=value, dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def random(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def random(cls, shape, dtype=_bx.float32, requires_grad=True):
         return cls(_bx.random.random(size=shape, dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def uniform(cls, shape, bounds=(0.0, 1.0), dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def uniform(cls, shape, bounds=(0.0, 1.0), dtype=_bx.float32, requires_grad=True):
         return cls(_bx.random.uniform(size=shape, low=bounds[0], high=bounds[1], dtype=dtype), requires_grad=requires_grad)
     
     @classmethod
-    def normal(cls, shape, mean=0.0, std=1.0, dtype=_bx.float32, requires_grad=_default_requires_grad):
+    def normal(cls, shape, mean=0.0, std=1.0, dtype=_bx.float32, requires_grad=True):
         return cls(_bx.random.normal(size=shape, loc=mean, scale=std, dtype=dtype), requires_grad=requires_grad)
     
+    @classmethod
+    def xavier_uniform(cls, shape, dtype=_bx.float32, requires_grad=True):
+        fan_in, fan_out = _compute_initializer_fans(shape)
+        limit = _bx.sqrt(6 / (fan_in + fan_out))
+        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
+
+    @classmethod
+    def xavier_normal(cls, shape, dtype=_bx.float32, requires_grad=True):
+        fan_in, fan_out = _compute_initializer_fans(shape)
+        scale = _bx.sqrt(2 / (fan_in + fan_out))
+        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
+
+    @classmethod
+    def he_uniform(cls, shape, dtype=_bx.float32, requires_grad=True):
+        fan_in, _ = _compute_initializer_fans(shape)
+        limit = _bx.sqrt(6 / (fan_in))
+        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
+
+    @classmethod
+    def he_normal(cls, shape, dtype=_bx.float32, requires_grad=True):
+        fan_in, _ = _compute_initializer_fans(shape)
+        scale = _bx.sqrt(2 / (fan_in))
+        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
+
     # Element-wise operations
     def __add__(self, other): return Tensor._from_op(add, self, other)
     def __radd__(self, other): return Tensor._from_op(add, other, self)
@@ -227,66 +248,12 @@ class Tensor:
     def swish(self): return Tensor._from_op(swish, self)
 
 class Parameter(Tensor):
-    # Class variables
-    _default_requires_grad = True
-
-    def __init__(self, data=None, requires_grad=_default_requires_grad):
+    def __init__(self, data=None, requires_grad=True):
         if Tensor._eager_mode:
             raise ValueError("cannot create/modify Parameter(s) in eager mode")
         if Tensor._no_grad_mode:
             raise ValueError("cannot create/modify Parameter(s) in no_grad mode")
-        if Tensor._func_mode:
-            raise ValueError("cannot create/modify Parameter(s) in functional mode")
 
         super().__init__(data, requires_grad)
 
         self._is_parameter = True
-    
-    # Parameter creation/initialization methods
-    @classmethod
-    def zeros(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.zeros(shape=shape, dtype=dtype), requires_grad=requires_grad)
-
-    @classmethod
-    def ones(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.ones(shape=shape, dtype=dtype), requires_grad=requires_grad)
-
-    @classmethod
-    def constant(cls, shape, value, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.full(shape=shape, fill_value=value, dtype=dtype), requires_grad=requires_grad)
-    
-    @classmethod
-    def random(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.random(size=shape, dtype=dtype), requires_grad=requires_grad)
-    
-    @classmethod
-    def uniform(cls, shape, bounds=(-0.05, 0.05), dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.uniform(size=shape, low=bounds[0], high=bounds[1], dtype=dtype), requires_grad=requires_grad)
-    
-    @classmethod
-    def normal(cls, shape, mean=0.0, std=0.2, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        return cls(_bx.random.normal(size=shape, loc=mean, scale=std, dtype=dtype), requires_grad=requires_grad)
-    
-    @classmethod
-    def xavier_uniform(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        fan_in, fan_out = shape
-        limit = _bx.sqrt(6 / (fan_in + fan_out))
-        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
-
-    @classmethod
-    def xavier_normal(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        fan_in, fan_out = shape
-        scale = _bx.sqrt(2 / (fan_in + fan_out))
-        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)
-
-    @classmethod
-    def he_uniform(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        fan_in, _ = shape
-        limit = _bx.sqrt(6 / (fan_in))
-        return cls(_bx.random.uniform(size=shape, low=-limit, high=limit, dtype=dtype), requires_grad=requires_grad)
-
-    @classmethod
-    def he_normal(cls, shape, dtype=_bx.float32, requires_grad=_default_requires_grad):
-        fan_in, _ = shape
-        scale = _bx.sqrt(2 / (fan_in))
-        return cls(_bx.random.normal(size=shape, loc=0.0, scale=scale, dtype=dtype), requires_grad=requires_grad)

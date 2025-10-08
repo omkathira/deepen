@@ -92,7 +92,6 @@ class swish:
         output = _bx.multiply(x, sigmoid)
 
         if save.active:
-            save.x = x
             save.ones = ones
             save.sigmoid = sigmoid
             save.output = output
@@ -101,5 +100,5 @@ class swish:
 
     @staticmethod
     def backward(save, output_grad):
-        dx = _bx.multiply(output_grad, _bx.add(save.sigmoid, _bx.multiply(save.x, _bx.multiply(save.sigmoid, _bx.subtract(save.ones, save.sigmoid)))))
+        dx = _bx.multiply(output_grad, _bx.add(save.sigmoid, _bx.multiply(save.output, _bx.subtract(save.ones, save.sigmoid))))
         return dx,

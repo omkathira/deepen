@@ -2,27 +2,32 @@
 from deepen.core.tensor import Tensor
 from deepen.core.graph import Graph
 
+def _make_immutable(args, kwargs):
+    immutable_args = []
+
+    for arg in args:
+        if isinstance(arg, Tensor):
+            t_copy = Tensor(arg.data, requires_grad=True)
+            t_copy._is_immutable = True
+            immutable_args.append(t_copy)
+        else:
+            immutable_args.append(arg)
+    
+    immutable_kwargs = {}
+    
+    for key, value in kwargs.items():
+        if isinstance(value, Tensor):
+            t_copy = Tensor(value.data, requires_grad=True)
+            t_copy._is_immutable = True
+            immutable_kwargs[key] = t_copy
+        else:
+            immutable_kwargs[key] = value
+    
+    return immutable_args, immutable_kwargs
+
 def trace(f):
     def wrapper(*args, **kwargs):
-        immutable_args = []
-
-        for arg in args:
-            if isinstance(arg, Tensor):
-                t_copy = Tensor(arg.data, requires_grad=True)
-                t_copy._is_immutable = True
-                immutable_args.append(t_copy)
-            else:
-                immutable_args.append(arg)
-        
-        immutable_kwargs = {}
-
-        for key, value in kwargs.items():
-            if isinstance(value, Tensor):
-                t_copy = Tensor(value.data, requires_grad=True)
-                t_copy._is_immutable = True
-                immutable_kwargs[key] = t_copy
-            else:
-                immutable_kwargs[key] = value
+        immutable_args, immutable_kwargs = _make_immutable(args, kwargs)
         
         result = f(*immutable_args, **immutable_kwargs)
         result.requires_grad = True
@@ -36,25 +41,7 @@ def trace(f):
 
 def grad(f):
     def wrapper(*args, **kwargs):
-        immutable_args = []
-
-        for arg in args:
-            if isinstance(arg, Tensor):
-                t_copy = Tensor(arg.data, requires_grad=True)
-                t_copy._is_immutable = True
-                immutable_args.append(t_copy)
-            else:
-                immutable_args.append(arg)
-        
-        immutable_kwargs = {}
-
-        for key, value in kwargs.items():
-            if isinstance(value, Tensor):
-                t_copy = Tensor(value.data, requires_grad=True)
-                t_copy._is_immutable = True
-                immutable_kwargs[key] = t_copy
-            else:
-                immutable_kwargs[key] = value
+        immutable_args, immutable_kwargs = _make_immutable(args, kwargs)
         
         result = f(*immutable_args, **immutable_kwargs)
         result.requires_grad = True

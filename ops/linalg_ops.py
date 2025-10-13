@@ -95,7 +95,7 @@ class _im2col:
         k_h_idx = _bx.arange(save.k_h)[None, None, None, None, :, None]
         k_w_idx = _bx.arange(save.k_w)[None, None, None, None, None, :]
 
-        h_idx = h_out_idx * save.stride + k_h_idx        
+        h_idx = h_out_idx * save.stride + k_h_idx
         w_idx = w_out_idx * save.stride + k_w_idx
         
         n_flat = _bx.broadcast_to(n_idx, output_grad.shape).ravel()

@@ -235,4 +235,4 @@ class MultiHeadAttention(Layer):
         batch_size, seq_len, _ = t.shape
         t = t.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
 
-# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: edit swish, concatenate, gather
+# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: concatenate, gather

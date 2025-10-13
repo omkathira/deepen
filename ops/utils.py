@@ -59,9 +59,9 @@ def _make_cache(op_cls, active):
 def _compute_initializer_fans(shape):
     if len(shape) == 2: # for linear layers, (fan_in, fan_out)
         fan_in, fan_out = shape
-    elif len(shape) == 4: # for convolutional layers, (num_filters, C, k_h, k_w)
+    elif len(shape) == 4: # for convolutional layers, (num_filters, in_ch, k_h, k_w)
         num_filters, in_ch, k_h, k_w = shape
-        fan_in, fan_out = in_ch * k_h * k_w,  num_filters * k_h * k_w
+        fan_in, fan_out = in_ch * k_h * k_w, num_filters * k_h * k_w
     else:
         raise ValueError("unsupported shape for initializer")
     return fan_in, fan_out

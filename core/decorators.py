@@ -1,4 +1,3 @@
-# trace.py
 from deepen.core.tensor import Tensor
 from deepen.core.graph import Graph
 

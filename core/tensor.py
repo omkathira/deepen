@@ -11,7 +11,6 @@ from deepen.ops.utils import _make_cache, _compute_initializer_fans
 _bx = bx() # backend singleton
 
 class Tensor:
-    # Global contexts
     _eager_mode = False
     _no_grad_mode = False
     
@@ -22,7 +21,7 @@ class Tensor:
         if Tensor._eager_mode or Tensor._no_grad_mode:
             requires_grad = False
 
-        # tensor attributes (accessible to the user)
+        # primary tensor attributes
         self.data = data
         self.grad = None
         self.requires_grad = requires_grad
@@ -31,7 +30,7 @@ class Tensor:
         self._op = None # the operation that made this tensor
         self._parents = () # a tuple of parent tensors
         self._save = None # intermediate values stored in an operation class' forward (needed by its backward)
-        self._args = None # arguments that are data we pass through the neural network
+        self._args = None # arguments that are directly involved in an operation (things like actual tensor data, etc)
         self._kwargs = None # arguments that aren't like the above (things like axes, shape, etc)
 
         # attributes for function decorators

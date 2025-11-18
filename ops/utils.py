@@ -51,10 +51,9 @@ def _count_elements(shape, axes):
 
 def _make_cache(op_cls, active):
     fields = ('active',) + (getattr(op_cls, '_save_data') if active else ())
-    cache = type(f'{op_cls.__name__}_cache', (), {'__slots__': fields})
-    save = cache()
-    save.active = active
-    return save
+    cache = type(f'{op_cls.__name__}_cache', (), {'__slots__': fields})()
+    cache.active = active
+    return cache
 
 def _compute_initializer_fans(shape):
     if len(shape) == 2: # for linear layers, (fan_in, fan_out)

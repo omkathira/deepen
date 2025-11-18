@@ -126,6 +126,7 @@ class BatchNorm1d(Layer):
             norm = (t - self.running_mean) / (self.running_var + self.epsilon) ** 0.5
 
         output = self.weights * norm
+
         return output + self.bias if self.bias is not None else output
 
 class BatchNorm2d(Layer):
@@ -153,6 +154,7 @@ class BatchNorm2d(Layer):
             norm = (t - self.running_mean) / (self.running_var + self.epsilon) ** 0.5
 
         output = self.weights * norm
+
         return output + self.bias if self.bias is not None else output
 
 class Conv2d(Layer):
@@ -187,6 +189,7 @@ class Conv2d(Layer):
 
         output = W_flat.matmul(im2col_output)
         output = output.reshape(self.num_filters, H_out, W_out, N).transpose((3, 0, 1, 2))
+
         return output + self.bias if self.bias is not None else output
 
 class MaxPool2d(Layer):
@@ -235,4 +238,4 @@ class MultiHeadAttention(Layer):
         batch_size, seq_len, _ = t.shape
         t = t.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
 
-# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder: concatenate, gather
+# soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder (need edits): concatenate, gather

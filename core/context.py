@@ -32,8 +32,4 @@ class _NoGradMode:
 def no_grad():
     return _NoGradMode()
 
-# Enable functional mode
-def set_functional_mode(func_mode: bool):
-    Tensor.functional_mode(func_mode)
-
-__all__ = ['eager', 'no_grad', 'set_functional_mode']
+__all__ = ['eager', 'no_grad']

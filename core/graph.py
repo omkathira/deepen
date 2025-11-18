@@ -3,6 +3,12 @@ from deepen.core.tensor import Tensor
 
 _bx = bx() # backend singleton
 
+class _Node:
+    def __init__(self, t: Tensor):
+        self.tensor = t
+        self.parents = tuple(id(parent) for parent in t._parents)
+        self.children = []
+
 class Graph:
     def __init__(self, root: Tensor):
         self._nodes = {}
@@ -26,16 +32,12 @@ class Graph:
         for parent in t._parents:
             self._traverse(parent, visited)
 
-        self._nodes[id(t)] = {
-            'tensor' : t,
-            'parents' : tuple(id(parent) for parent in t._parents),
-            'children' : [],
-        }
+        self._nodes[id(t)] = _Node(t)
 
         self._topo_order.append(id(t))
 
         for parent in t._parents:
-            self._nodes[id(parent)]['children'].append(id(t))
+            self._nodes[id(parent)].children.append(id(t))
 
     def _topo_sort(self, root: Tensor): # build the execution order
         visited = set()
@@ -43,11 +45,11 @@ class Graph:
 
     def _zero_grad(self):
         for t_id in self._topo_order:
-            self._nodes[t_id]['tensor']._reset_grad()
+            self._nodes[t_id].tensor._reset_grad()
 
     def _forward(self):
         for t_id in self._topo_order:
-            t = self._nodes[t_id]['tensor']
+            t = self._nodes[t_id].tensor
 
             if t._has_no_op():
                 continue
@@ -58,7 +60,7 @@ class Graph:
 
     def _backward(self):
         for t_id in reversed(self._topo_order):
-            t = self._nodes[t_id]['tensor']
+            t = self._nodes[t_id].tensor
 
             if not t._can_send_grad():
                 continue
@@ -82,7 +84,7 @@ class Graph:
         self._forward()
 
         root_t_id = self._topo_order[-1]
-        root_t = self._nodes[root_t_id]['tensor']
+        root_t = self._nodes[root_t_id].tensor
 
         if Tensor._eager_mode:
             return root_t

@@ -192,50 +192,85 @@ class Conv2d(Layer):
 
         return output + self.bias if self.bias is not None else output
 
-class MaxPool2d(Layer):
-    pass
-
-class Embedding(Layer):
-    def __init__(self, vocab_size, latent_feat, weight_init="uniform"):
+class Conv2dTranspose(Layer):
+    def __init__(self, input_shape, num_filters, kernel_size=(3, 3), stride=1, padding=1, weight_init="uniform", bias=True, bias_init="zeros"):
         super().__init__()
-        self.vocab_size = vocab_size
-        self.latent_feat = latent_feat
-
+        self.C, self.H, self.W = input_shape
+        self.num_filters = num_filters
+        self.k_h, self.k_w = kernel_size
+        self.stride = stride
+        self.padding = padding
+        
         weight_init_fn = getattr(Parameter, weight_init, None)
         if not callable(weight_init_fn):
             raise ValueError(f"unknown weight initializer")
         
-        self.weights = weight_init_fn((vocab_size, latent_feat))
+        self.weights = weight_init_fn((num_filters, self.C, self.k_h, self.k_w))
+        
+        bias_init_fn = getattr(Parameter, bias_init, None)
+        if not callable(bias_init_fn):
+            raise ValueError(f"unknown bias initializer")
+        
+        self.bias = bias_init_fn((1, num_filters, 1, 1)) if bias else None
     
     def forward(self, t):
-        return self.weights.gather(t)
+        N, _, H, W = t.shape
+        
+        H_out = (H + 2 * self.padding - self.k_h) // self.stride + 1
+        W_out = (W + 2 * self.padding - self.k_w) // self.stride + 1
+        
+        col2im_output = Tensor._from_op(_col2im, t, output_shape=(N, self.C, H, W), k_h=self.k_h, k_w=self.k_w, stride=self.stride, padding=self.padding)
+        W_flat = self.weights.reshape(self.num_filters, -1)
+        
+        output = W_flat.matmul(col2im_output)
+        output = output.reshape(self.num_filters, H_out, W_out, N).transpose((3, 0, 1, 2))
+        
+        return output + self.bias if self.bias is not None else output
 
-class PositionalEncoding(Layer):
-    def __init__(self, seq_len, latent_feat):
-        super().__init__()
-        self.seq_len = seq_len
-        self.latent_feat = latent_feat
+class MaxPool2d(Layer):
+    pass
+
+# class Embedding(Layer):
+#     def __init__(self, vocab_size, latent_feat, weight_init="uniform"):
+#         super().__init__()
+#         self.vocab_size = vocab_size
+#         self.latent_feat = latent_feat
+
+#         weight_init_fn = getattr(Parameter, weight_init, None)
+#         if not callable(weight_init_fn):
+#             raise ValueError(f"unknown weight initializer")
+        
+#         self.weights = weight_init_fn((vocab_size, latent_feat))
+    
+#     def forward(self, t):
+#         return self.weights.gather(t)
+
+# class PositionalEncoding(Layer):
+#     def __init__(self, seq_len, latent_feat):
+#         super().__init__()
+#         self.seq_len = seq_len
+#         self.latent_feat = latent_feat
 
         
 
-class MultiHeadAttention(Layer):
-    def __init__(self, in_feat, latent_feat, num_heads=4):
-        super().__init__()
-        if latent_feat % num_heads != 0:
-            raise ValueError("latent_feat must be divisible by num_heads")
+# class MultiHeadAttention(Layer):
+#     def __init__(self, in_feat, latent_feat, num_heads=4):
+#         super().__init__()
+#         if latent_feat % num_heads != 0:
+#             raise ValueError("latent_feat must be divisible by num_heads")
 
-        self.latent_feat = latent_feat
-        self.num_heads = num_heads
-        self.att_head_feat = latent_feat / num_heads
+#         self.latent_feat = latent_feat
+#         self.num_heads = num_heads
+#         self.att_head_feat = latent_feat / num_heads
 
-        self.q_proj = Linear(in_feat, latent_feat)
-        self.k_proj = Linear(in_feat, latent_feat)
-        self.v_proj = Linear(in_feat, latent_feat)
+#         self.q_proj = Linear(in_feat, latent_feat)
+#         self.k_proj = Linear(in_feat, latent_feat)
+#         self.v_proj = Linear(in_feat, latent_feat)
 
-        self.out_proj = Linear(latent_feat, in_feat)
+#         self.out_proj = Linear(latent_feat, in_feat)
 
-    def _split_heads(self, t):
-        batch_size, seq_len, _ = t.shape
-        t = t.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
+#     def _split_heads(self, t):
+#         batch_size, seq_len, _ = t.shape
+#         t = t.reshape(batch_size, seq_len, self.num_heads, self.att_head_feat)
 
 # soon: RNN layers (LSTM, GRU, orthogonal weight init), reminder (need edits): concatenate, gather

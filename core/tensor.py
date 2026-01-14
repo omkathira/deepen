@@ -51,7 +51,7 @@ class Tensor:
             raise AttributeError("cannot access .shape for a Tensor with no data")
         return self.data.shape
     
-    @property
+    @property   
     def ndim(self):
         if self.data is None:
             raise AttributeError("cannot access .ndim for a Tensor with no data")

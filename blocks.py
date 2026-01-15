@@ -4,7 +4,6 @@ from deepen.layers import *
 class Sequential(Layer):
     def __init__(self, *layers):
         super().__init__()
-
         self.layers = list(layers)
 
         for i, layer in enumerate(layers):
@@ -19,7 +18,6 @@ class Sequential(Layer):
 class Activation(Layer):
     def __init__(self, activation_name, **kwargs):
         super().__init__()
-        self.activation_name = activation_name
         self.activation_func = getattr(Tensor, activation_name)
         self.kwargs = kwargs
     
@@ -44,6 +42,12 @@ class LSTMCell(Layer):
 class GRUCell(Layer):
     pass
 
-# Encoder and decoder blocks for Autoencoders (AEs), Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), etc
+# Blocks for Autoencoders (AEs), Variational Autoencoders (VAEs), Generative Adversarial Networks (GANs), etc
+
+class EncoderBlock(Layer): # equivalent to a GeneratorBlock
+    pass
+
+class DecoderBlock(Layer): # equivalent to a DiscriminatorBlock
+    pass
 
 # Blocks for Transformers

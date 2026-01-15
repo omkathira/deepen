@@ -176,4 +176,3 @@ class _col2im:
         patches = patches.transpose((1, 4, 5, 2, 3, 0)).reshape(C * save.k_h * save.k_w, save.H_out * save.W_out * N)
 
         return patches,
-

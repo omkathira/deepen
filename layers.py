@@ -1,6 +1,6 @@
 from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor, Parameter
-from deepen.ops.linalg_ops import _im2col
+from deepen.ops.linalg_ops import _im2col, _col2im
 from deepen.ops.stochastic_ops import *
 
 _bx = bx() # backend singleton

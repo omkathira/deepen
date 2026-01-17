@@ -31,7 +31,7 @@ def ReLU(): return Activation('relu')
 def LeakyReLU(neg_slope=0.1): return Activation('leaky_relu', neg_slope=neg_slope)
 def Swish(): return Activation('swish')
 
-# Block for residuals
+# Block for residuals (supports linear and convolutional layers)
 class ResidualBlock(Layer):
     pass
 
@@ -50,4 +50,7 @@ class EncoderBlock(Layer): # equivalent to a GeneratorBlock
 class DecoderBlock(Layer): # equivalent to a DiscriminatorBlock
     pass
 
-# Blocks for Transformers
+# Block for Transformers
+
+class TransformerBlock(Layer):
+    pass

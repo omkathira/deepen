@@ -1,3 +1,4 @@
+import json
 from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor
 
@@ -74,6 +75,88 @@ class Graph:
                     parent.grad = grad
                 else:
                     parent.grad += grad # accumulating gradients
+    
+    def _serialize_op_attr(self, value):
+        if isinstance(value, str): return {"String": value}
+        elif isinstance(value, int): return {"Int": value}
+        elif isinstance(value, float): return {"Float": value}
+        elif isinstance(value, (list, tuple)):
+            if all(isinstance(x, int) for x in value): return {"IntList": list(value)}
+            elif all(isinstance(x, float) for x in value): return {"FloatList": list(value)}
+            else: return {"String": str(value)} # we might have None sometimes
+        elif isinstance(value, bool): return {"Bool": value}
+        elif isinstance(value, str): return {"String": value}
+        else: return {"String": str(value)} # fallback to returning a string, the compiler will handle any errors
+
+    def _serialize(self, root: Tensor, dtype="Float32"):
+        tensors_IR = {}
+        inputs = []
+        
+        for t_id, node in self._nodes.items():
+            t = node.tensor
+
+            if t._op is None: # figure out what type of tensor we're working with
+                if hasattr(t, '_is_parameter') and t._is_parameter:
+                    tensor_type = "Parameter"
+                else:
+                    tensor_type = "Input"
+                    inputs.append(t_id)
+        else:
+            tensor_type = "Intermediate"
+        
+        shape = list(t.shape) if t.data is not None else []
+
+        tensors_IR[t_id] = {
+            "id": t_id,
+            "shape": shape,
+            "requires_grad": t.requires_grad,
+            "tensor_type": tensor_type,
+        }
+
+        output_id = id(root)
+        if output_id in tensors_IR: # mark the output tensor (the loss)
+            tensors_IR[output_id]["tensor_type"] = "Output"
+        
+        nodes_IR = []
+        node_id = 0
+        topo_order = []
+
+        for t_id in self._topo_order:
+            t = self._nodes[t_id].tensor
+
+            if t._has_no_op():
+                continue
+
+            op_name = t._op.__class__.__name__
+            op_attrs = {}
+            for k, v in (t._kwargs or {}).items():
+                op_attrs[k] = self._serialize_op_attr(v)
+            
+            node_IR = {
+                "id": node_id,
+                "inputs": [id(p) for p in t._parents],
+                "output": t_id,
+                "op_name": op_name,
+                "op_attrs": op_attrs,
+            }
+
+            nodes_IR.append(node_IR)
+            topo_order.append(node_id)
+            node_id += 1
+        
+        graph = {
+            "version": "1.0",
+            "tensors": tensors_IR,
+            "nodes": nodes_IR,
+            "inputs": inputs,
+            "output": output_id,
+            "topo_order": topo_order,
+        }
+
+        return json.dumps(graph, indent=2)
+
+    def compile():
+        pass
 
     def run(self, feed_dict):
         for ph_t, data in feed_dict.items():

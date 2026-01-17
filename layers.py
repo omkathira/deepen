@@ -9,6 +9,7 @@ class Layer:
     def __init__(self):
         self._layers = {}
         self._parameters = {}
+        self._is_block = False # 
 
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
@@ -22,8 +23,8 @@ class Layer:
         super().__setattr__(name, value)
 
     def parameters(self):
-        for p in self._parameters.values():
-            yield p
+        if not self._is_block:
+            yield from self._parameters.values()
         for layer in self._layers.values():
             yield from layer.parameters()
 
@@ -228,6 +229,9 @@ class Conv2dTranspose(Layer):
         return output + self.bias if self.bias is not None else output
 
 class MaxPool2d(Layer):
+    pass
+
+class AvgPool2d(Layer):
     pass
 
 # class Embedding(Layer):

@@ -78,13 +78,16 @@ This section should list any major frameworks/libraries used to bootstrap your p
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+I highly recommend using micromamba to setup Deepen's environment:
+
+```
+micromamba create -n deepen -c conda-forge python=3.13 numpy cupy matplotlib ipykernel
+```
+
+Eventually, I'll update this to include installation instructions for ```rust``` and ```cuda```.
 
 ### Prerequisites
 

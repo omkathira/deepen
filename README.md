@@ -22,20 +22,18 @@
 </div>
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## What's Deepen?
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+Deepen is a from-scratch deep learning framework that implements automatic differentiation, computational graphs, and
+  a complete suite of neural network primitives. Inspired by PyTorch's design philosophy, it provides a flexible tensor
+  abstraction with dual execution modes—lazy graph building (default) for optimization and eager execution for
+  debugging—along with a full reverse-mode autodiff system for training neural networks via backpropagation.
 
-There are many great README templates available on GitHub; however, I didn't find one that really suited my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
-
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should implement DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have contributed to expanding this template!
-
-Use the `BLANK_README.md` to get started.
+  The framework features a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural
+  network layers (Linear, Conv2d, BatchNorm, LayerNorm), modern optimizers (SGD, Adam, AdamW, RMSprop), and common loss
+  functions. An emerging Rust-based compiler infrastructure (deepX/) enables graph serialization to JSON IR for
+  cross-language compilation and optimization, positioning the project for future hardware-specific code generation and
+  performance optimization passes.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

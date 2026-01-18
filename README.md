@@ -30,11 +30,8 @@ I'm currently working on a Rust-based compiler (DeepX) with graph serialization 
 
 ## Framework Structure
 
-Full Module Breakdown
-
 Core Infrastructure (core/) <br/><br/>
-Module: tensor.py <br/>
-Purpose: Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He) <br/>
+Module: tensor.py --> Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He) <br/>
 ──────────────────────────────────────── <br/>
 Module: graph.py <br/>
 Purpose: Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (in progress) <br/>

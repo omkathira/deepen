@@ -25,9 +25,9 @@
 ## What's Deepen?
 
 Deepen is a from-scratch deep learning framework that implements automatic differentiation, computational graphs, and
-  a complete suite of neural network primitives. Inspired by PyTorch's design philosophy, it provides a flexible tensor
-  abstraction with dual execution modes—lazy graph building (default) for optimization and eager execution for
-  debugging—along with a full reverse-mode autodiff system for training neural networks via backpropagation.
+  a complete suite of neural network primitives/layers. Inspired by both PyTorch and JAX's design, it provides a flexible tensor
+  abstraction with dual execution modes - lazy graph building by default, eager execution for
+  debugging, and functional decorators for in-place compilation and gradients - along with a full reverse-mode autodiff system for training neural networks via backpropagation.
 
   The framework features a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural
   network layers (Linear, Conv2d, BatchNorm, LayerNorm), modern optimizers (SGD, Adam, AdamW, RMSprop), and common loss

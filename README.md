@@ -77,6 +77,18 @@ from deepen.core.tensor import Tensor # activations are intrinsic to tensors!
 from deepen.core.graph import Graph
 from deepen.layers import Linear, BatchNorm1d
 
+# define some mock data that follows a sine curve
+N = 100
+
+X_data = cp.linspace(0, 1, N, dtype=cp.float32).reshape(-1, 1)
+Y_data = cp.sin(2 * cp.pi * X_data) + 0.1 * cp.random.randn(N, 1).astype(cp.float32)
+
+X = dpn.Tensor(data=None, requires_grad=False)
+Y = dpn.Tensor(data=None, requires_grad=False)
+
+feed_dict = {X: X_data, Y: Y_data}
+
+# an overly complex neural network to model sine b/c why not
 class SineNet(dpn.Layer):
     def __init__(self):
         super().__init__()
@@ -109,19 +121,22 @@ for epoch in range(1, 301):
     loss = model.run(feed_dict)
     optimizer.step()
     losses.append(float(loss.data))
-    if epoch % 50 == 0:
+    if epoch % 50 == 0: # print out the model's loss every 50 epochs
         print(f"epoch {epoch:4d}, loss {losses[-1]:.4f}")
 
-with np.errstate(invalid='ignore'):
-    pred_np = pred.data.get() # bring back to NumPy
+# bring stuff back to NumPy b/c matplotlib can't work with CuPy arrays
+X_np = X_data.get()
+Y_np = Y_data.get()
+pred_np = pred.data.get()
 
+# quick and dirty plot
 plt.figure(figsize=(4,3))
-plt.scatter(x_np, y_np, s=8, alpha=0.4, label="Data")
-plt.plot(x_np, pred_np, color="r", lw=2, label="Model")
+plt.scatter(X_np, Y_np, s=8, alpha=0.4, label="data")
+plt.plot(X_np, pred_np, color="r", lw=2, label="model")
 plt.xlabel("x")
 plt.ylabel("y = sin(x)")
 plt.legend()
-plt.title("Fitting Sine")
+plt.title("Fitting a Simple Sine!")
 plt.tight_layout()
 plt.show()
 ```

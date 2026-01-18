@@ -67,16 +67,15 @@ You can pick between installing either ```NumPy``` or ```CuPy```. The last packa
 
 ## Example
 
-```
+```python
 import numpy as np
 import cupy as cp
 import matplotlib.pyplot as plt
 
 import deepen as dpn
-from deepen.core.tensor import Tensor
+from deepen.core.tensor import Tensor # activations are intrinsic to tensors!
 from deepen.core.graph import Graph
-
-from deepen.layers import Conv2d, BatchNorm2d, LayerNorm2d
+from deepen.layers import Linear, BatchNorm1d
 
 class SineNet(dpn.Layer):
     def __init__(self):

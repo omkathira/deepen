@@ -69,6 +69,8 @@ Deepen's goal is to be very approachable. While the lack of documentation (hopef
 
 With that mindset, I've also decided to build a compiler for it in `Rust`. The goal is the same - write super readable systems code to show you the essence of how a deep learning compiler works (you might lose that guarantee from me for `CUDA` code, however). Other projects like this are usually too simple and don't teach you much. Deepen is fully-featured, supports a near-complete subset of deep learning models, and you get to see someone design and build a compiler for it in real-time.
 
+Of course, Deepen is a gentle introduction to deep learning systems and hides a lot of complexities you'd usually find in frameworks like `PyTorch`, or worse, `JAX` (more of a differentiable programming framework, but similar in capability). While building it, I used, and still use a super cool tool called `DeepWiki` (based on [Devin](devin.ai)). It first indexes large codebases with an LLM after which you can ask it questions of any kind. You can find [`PyTorch`](https://deepwiki.com/pytorch/pytorch) and [`JAX`](https://deepwiki.com/jax-ml/jax) already indexed. They're pretty frequently updated too!
+
 Note: you can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages with `micromamba` (once the compiler is ready).
 
 ## Example
@@ -146,6 +148,10 @@ plt.title("Fitting a Simple Sine!")
 plt.tight_layout()
 plt.show()
 ```
+
+## Acknowledgements
+
+
 
 <!-- LICENSE -->
 ## License

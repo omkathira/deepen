@@ -14,6 +14,8 @@ class Graph:
     def __init__(self, root: Tensor):
         self._nodes = {}
         self._topo_order = []
+        self._grad_buffers = {}
+        self._grad_buffers_allocated = False
 
         self._clear_computed_data(root)
         self._topo_sort(root)
@@ -44,9 +46,25 @@ class Graph:
         visited = set()
         self._traverse(root, visited)
 
-    def _zero_grad(self):
+    def _allocate_grad_buffers(self):
         for t_id in self._topo_order:
-            self._nodes[t_id].tensor._reset_grad()
+            t = self._nodes[t_id].tensor
+
+            if t.requires_grad and t.data is not None:
+                buffer = _bx.zeros_like(t.data)
+                self._grad_buffers[t_id] = buffer
+                t.grad = buffer
+        
+        self._grad_buffers_allocated = True
+
+    def _zero_grads(self):
+        if self._grad_buffers_allocated:
+            for buffer in self._grad_buffers.values():
+                #print(type(buffer))
+                buffer[:] = 0
+        else:
+            for t_id in self._topo_order:
+                self._nodes[t_id].tensor._reset_grad()
 
     def _forward(self):
         for t_id in self._topo_order:
@@ -73,8 +91,8 @@ class Graph:
                     continue
                 if parent.grad is None: # first time accumulating gradients
                     parent.grad = grad
-                else:
-                    parent.grad += grad # accumulating gradients
+                else: # accumulating gradients
+                    parent.grad += grad
     
     def _serialize_op_attr(self, value):
         if isinstance(value, int): return {"Int": value}
@@ -170,9 +188,12 @@ class Graph:
         for ph_t, data in feed_dict.items():
             ph_t.data = data
 
-        self._zero_grad()
+        self._zero_grads()
 
         self._forward()
+
+        if not self._grad_buffers_allocated:
+            self._allocate_grad_buffers()
 
         root_t_id = self._topo_order[-1]
         root_t = self._nodes[root_t_id].tensor

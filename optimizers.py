@@ -8,10 +8,6 @@ class Optimizer:
         self._params = {id(p): p for p in params}
         self._param_order = [id(p) for p in params]
 
-    def zero_grad(self):
-        for p_id in self._param_order:
-            self._params[p_id]._reset_grad()
-
 class SGD(Optimizer):
     def __init__(self, params, lr=1e-3, momentum=None, weight_decay=None):
         super().__init__(params)
@@ -136,3 +132,6 @@ class AdamW(Optimizer):
                 v_hat = self.v[p_id] / (1 - self.b2 ** self.t)
 
                 p.data -= self.lr * (m_hat / (_bx.sqrt(v_hat) + self.epsilon))
+
+class Muon(Optimizer):
+    pass

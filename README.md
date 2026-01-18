@@ -24,16 +24,9 @@
 <!-- ABOUT THE PROJECT -->
 ## What's Deepen?
 
-Deepen is a from-scratch deep learning framework that implements automatic differentiation, computational graphs, and
-  a complete suite of neural network primitives/layers. Inspired by both PyTorch and JAX's design, it provides a flexible tensor
-  abstraction with dual execution modes - lazy graph building by default, eager execution for
-  debugging, and functional decorators for in-place compilation and gradients - along with a full reverse-mode autodiff system for training neural networks via backpropagation.
+Deepen is a custom, static-graph deep learning framework that implements automatic differentiation, computational graphs, and a complete suite of neural network primitives. Inspired by PyTorch and JAX, it provides a flexible tensor abstraction with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks via backpropagation.
 
-  The framework features a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural
-  network layers (Linear, Conv2d, BatchNorm, LayerNorm), modern optimizers (SGD, Adam, AdamW, RMSprop), and common loss
-  functions. An emerging Rust-based compiler infrastructure (deepX/) enables graph serialization to JSON IR for
-  cross-language compilation and optimization, positioning the project for future hardware-specific code generation and
-  performance optimization passes.
+The framework features a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural network layers (Linear, Conv2d, BatchNorm, LayerNorm, etc), modern optimizers (SGD, Adam, AdamW, RMSprop), and common loss functions. I'm currently working on a Rust-based compiler (deepX/) with graph serialization to a JSON-based SSA IR for model compilation and optimization (operator fusion and a close-to-metal CUDA compute engine).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

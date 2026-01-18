@@ -155,7 +155,7 @@ plt.show()
 
 One of the reasons I wanted to build a project like this was inspiration from talking to Dr. Tianqi Chen - my professor at CMU. He teaches two amazing courses that I've taken: *10-414: Deep Learning Systems: Algorithms and Implementation* and *15-442: Machine Learning Systems* which together cover a variety of material spanning automatic differentiation, neural network library abstractions, hardware acceleration with GPU programming (GPU memory models, low-level CUDA kernel implementations, etc), things like TVM (an ML-based deep learning compiler), efficient deep learning model implementations (optimizing how convolutions are implemented under-the-hood, etc), and other advanced stuff that changes year-to-year.
 
-The primary reason was that my research at CMU is at the intersection of neuroscience and deep learning - and while I was good at using libraries like PyTorch (for coursework and personal projects) and JAX (for my research) - I wanted to really learn how these things worked internally. Turns out, the best way to do that, is to build one yourself.
+The primary reason, however, was that my research at CMU lies at the intersection of neuroscience and deep learning - and while I was good at using libraries like PyTorch (for coursework and personal projects) and JAX (for my research) - I wanted to really learn how these things worked internally. Turns out, the best way to do that, is to build one yourself.
 
 <!-- LICENSE -->
 ## License

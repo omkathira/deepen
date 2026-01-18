@@ -67,7 +67,7 @@ Once you've done that, just clone this repo to any directory you want, activate 
 
 Deepen's goal is to be very approachable. While the lack of documentation (hopefully, not for long) makes that seem conterintuitive, the code itself is in `Python` and super readable. If you want to understand how a deep learning framework is structured - my hope is that exploring Deepen will be much easier than diving into `PyTorch`'s source code.
 
-With that mindset, I've also decided to build a compiler for it in `Rust`. The goal is the same - write super readable systems code to show you the essence of how a deep learning compiler works (you might lose that guarantee from me for `CUDA` code, however). Other projects like this are usually too simple and don't teach you much. Deepen is fully-featured, supports a near-complete subset of deep learning models, and following it will let you see me build a compiler for it in real-time.
+With that mindset, I've also decided to build a compiler for it in `Rust`. The goal is the same - write super readable systems code to show you the essence of how a deep learning compiler works (you might lose that guarantee from me for `CUDA` code, however). Other projects like this are usually too simple and don't teach you much. Deepen is fully-featured, supports a near-complete subset of deep learning models, and you get to see someone design and build a compiler for it in real-time.
 
 Note: you can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages with `micromamba` (once the compiler is ready).
 

@@ -84,10 +84,10 @@ This section should list any major frameworks/libraries used to bootstrap your p
 I highly recommend using micromamba to setup Deepen's environment. Installing micromamba is super simple (instructions here: (https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html). Currently, Deepen's GPU backend only works on Linux/Windows (you must be able to use CuPy). The compiler backend is GPU-only (uses NVIDIA CUDA libraries and code directly).
 
 ```
-micromamba create -n deepen -c conda-forge python=3.13 numpy cupy matplotlib ipykernel
+micromamba create -n deepen -c conda-forge python=3.13 numpy cupy ipykernel
 ```
 
-Eventually, I'll update this to include installation instructions for ```rust``` and ```cuda```.
+You can pick between installing either ```NumPy``` or ```CuPy```. The last package, ```ipykernel``` is generally useful to run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include installation instructions for ```rust``` and ```cuda``` once the compiler is ready.
 
 ### Prerequisites
 

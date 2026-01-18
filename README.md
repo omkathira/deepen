@@ -75,7 +75,7 @@ Of course, Deepen is a gentle introduction to deep learning systems and hides a 
 
 ## Example
 
-Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine wave. I have an MNIST example that uses a CNN in the works.
+Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine curve. I have an MNIST example that uses a CNN in the works.
 
 ```python
 import numpy as np

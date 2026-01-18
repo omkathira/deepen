@@ -65,9 +65,67 @@ micromamba create -n deepen -c conda-forge python=3.13 numpy cupy ipykernel
 
 You can pick between installing either ```NumPy``` or ```CuPy```. The last package, ```ipykernel``` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup ```rust```, ```cuda```, and their related packages once the compiler is ready.
 
-## Examples
+## Example
 
+```
+import numpy as np
+import cupy as cp
+import matplotlib.pyplot as plt
 
+import deepen as dpn
+from deepen.core.tensor import Tensor
+from deepen.core.graph import Graph
+
+from deepen.layers import Conv2d, BatchNorm2d, LayerNorm2d
+
+class SineNet(dpn.Layer):
+    def __init__(self):
+        super().__init__()
+        self.l1 = dpn.Linear(1, 64, weight_init="he_uniform")
+        self.norm1 = dpn.BatchNorm1d(64)
+        self.l2 = dpn.Linear(64, 64, weight_init="he_uniform")
+        self.norm2 = dpn.BatchNorm1d(64)
+        self.l3 = dpn.Linear(64, 1, weight_init="he_uniform")
+    
+    def forward(self, x):
+        x = self.l1(x).swish()
+        x = self.norm1(x)
+        x = self.l2(x).swish()
+        x = self.norm2(x)
+        return self.l3(x)
+    
+    def build(self, X, Y):
+        pred = self.forward(X)
+        loss = dpn.mse(pred, Y)
+        comp_graph = dpn.Graph(loss)
+        return comp_graph, pred, loss
+        
+snet = SineNet()
+model, pred, loss = snet.build(X, Y)
+optimizer = dpn.Adam(snet.parameters(), lr=0.01)
+
+losses = []
+for epoch in range(1, 301):
+    optimizer.zero_grad()
+    loss = model.run(feed_dict)
+    optimizer.step()
+    losses.append(float(loss.data))
+    if epoch % 50 == 0:
+        print(f"epoch {epoch:4d}, loss {losses[-1]:.4f}")
+
+with np.errstate(invalid='ignore'):
+    pred_np = pred.data.get() # bring back to NumPy
+
+plt.figure(figsize=(4,3))
+plt.scatter(x_np, y_np, s=8, alpha=0.4, label="Data")
+plt.plot(x_np, pred_np, color="r", lw=2, label="Model")
+plt.xlabel("x")
+plt.ylabel("y = sin(x)")
+plt.legend()
+plt.title("Fitting Sine")
+plt.tight_layout()
+plt.show()
+```
 
 <!-- LICENSE -->
 ## License

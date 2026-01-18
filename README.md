@@ -32,10 +32,10 @@ I'm currently working on a Rust-based compiler (DeepX) with graph serialization 
 
 **Core Infrastructure** (core/)
 ```
-tensor.py --> Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)
-graph.py --> Computation graph builder/executor with topological sorting, forward/backward passes, graph serialization
+tensor.py --> tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)
+graph.py --> computation graph builder/executor with topological sorting, forward/backward passes, graph serialization
 decorators.py --> @trace (captures computation graph from a function), @grad (returns a gradient function)
-context.py --> Context managers - eager() mode (for debugging), no_grad() mode (for inference)
+context.py --> context managers - eager() mode (for debugging), no_grad() mode (for inference)
 ```
 **Op modules** (ops/)
 ```

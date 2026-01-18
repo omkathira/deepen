@@ -78,15 +78,6 @@ Of course, Deepen is a gentle introduction to deep learning systems and simplifi
 Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine curve. I have an MNIST example that uses a CNN in the works.
 
 ```python
-import numpy as np
-import cupy as cp
-import matplotlib.pyplot as plt
-
-import deepen as dpn
-from deepen.core.tensor import Tensor # activations are intrinsic to tensors!
-from deepen.core.graph import Graph
-from deepen.layers import Linear, BatchNorm1d
-
 # define some mock data that follows a sine curve
 N = 100
 
@@ -127,7 +118,6 @@ optimizer = dpn.Adam(snet.parameters(), lr=0.01)
 
 losses = []
 for epoch in range(1, 301):
-    optimizer.zero_grad()
     loss = model.run(feed_dict)
     optimizer.step()
     losses.append(float(loss.data))

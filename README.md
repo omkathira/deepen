@@ -15,7 +15,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About
 
-Deepen is a custom, static-graph deep learning framework that implements automatic differentiation, computational graphs, and a complete suite of neural network primitives. Inspired mainly by PyTorch and a bit by JAX, it provides a flexible, abstracted tensor interface with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks via backpropagation. It also has a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural network layers (Linear, Conv2d, BatchNorm, etc), popular optimizers (SGD, RMSprop, Adam, etc), and common loss functions.
+Deepen is a custom, static-graph deep learning framework that implements automatic differentiation, computational graphs, and a complete suite of neural network primitives. Inspired mainly by PyTorch and a bit by JAX, it provides a flexible, abstracted tensor interface with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks. It also has a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural network layers (Linear, Conv2d, BatchNorm, etc), popular optimizers (SGD, RMSprop, Adam, etc), and common loss functions (MSE, BCE, etc).
 
 I'm currently working on a Rust-based compiler (DeepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system routes to a custom CUDA backend built using cuBLAS/cuDNN and fused CUDA kernels.
 
@@ -43,7 +43,7 @@ utils.py --> gradient broadcasting, axes normalization, initializer helpers
 **High-Level API**
 ```
 layers.py --> neural network layers - Linear, Conv2d, MaxPool2d, BatchNorm1d/2d, Dropout, etc
-compose.py --> sequential container, activation wrappers, model blocks (residuals, and support for RNNs, CNNs, Transformers, etc)
+compose.py --> sequential container, activation wrappers, model blocks (residuals, support for CNNs, Transformers, etc)
 losses.py --> MSE, MAE, binary cross-entropy, cross-entropy, KL divergence (planned)
 optimizers.py --> SGD (with momentum), RMSprop, Adam, AdamW, Muon (planned)
 backend.py --> backend abstraction for NumPy/CuPy switching

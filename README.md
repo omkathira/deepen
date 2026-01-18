@@ -1,9 +1,9 @@
-<!-- PROJECT LOGO -->
+<!-- PROJECT TITLE/LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/Catastrophe9260/deepen">
+  <!-- <a href="https://github.com/Catastrophe9260/deepen">
     <img src="logo.png" alt="Logo" width="80" height="80">
-  </a>
+  </a> -->
 
   <h1 align="center">Deepen</h1>
 

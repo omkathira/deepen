@@ -144,4 +144,4 @@ plt.show()
 <!-- LICENSE -->
 ## License
 
-
+MIT License - see [LICENSE](LICENSE)

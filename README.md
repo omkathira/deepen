@@ -30,18 +30,17 @@ I'm currently working on a Rust-based compiler (DeepX) with graph serialization 
 
 ## Framework Structure
 
-Core Infrastructure (core/) <br/><br/>
+Core Infrastructure (core/)
+
 Module: tensor.py --> Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He) <br/>
 ──────────────────────────────────────── <br/>
-Module: graph.py <br/>
-Purpose: Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (in progress) <br/>
+Module: graph.py --> Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (in progress) <br/>
 ──────────────────────────────────────── <br/>
-Module: decorators.py <br/>
-Purpose: @trace (captures computation graph from a function), @grad (returns a gradient function) <br/>
+Module: decorators.py --> @trace (captures computation graph from a function), @grad (returns a gradient function) <br/>
 ──────────────────────────────────────── <br/>
-Module: context.py <br/>
-Purpose: Context managers - eager() mode (for debugging), no_grad() mode (for inference) <br/>
-Operations Layer (ops/) <br/>
+Module: context.py --> Context managers - eager() mode (for debugging), no_grad() mode (for inference) <br/>
+
+Operations Layer (ops/)
   ┌───────────────────┬─────────────────────────────────────────────────────────────┐
   │      Module       │                         Operations                          │
   ├───────────────────┼─────────────────────────────────────────────────────────────┤

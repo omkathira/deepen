@@ -28,6 +28,45 @@ Deepen is a custom, static-graph deep learning framework that implements automat
 
 I'm currently working on a Rust-based compiler (DeepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system will route to a custom CUDA backend built using cuBLAS/cuDNN and fused CUDA kernels.
 
+## Framework Structure
+
+Full Module Breakdown
+
+  Core Infrastructure (core/)
+  Module: tensor.py
+  Purpose: Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)
+  ────────────────────────────────────────
+  Module: graph.py
+  Purpose: Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (upcoming)
+  ────────────────────────────────────────
+  Module: decorators.py
+  Purpose: @trace (captures computation graph from a function), @grad (returns a gradient function)
+  ────────────────────────────────────────
+  Module: context.py
+  Purpose: Context managers - eager() mode (for debugging), no_grad() mode (for inference)
+  Operations Layer (ops/)
+  ┌───────────────────┬─────────────────────────────────────────────────────────────┐
+  │      Module       │                         Operations                          │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ ewise_ops.py      │ add, sub, mul, div, neg, abs, pow, exp, log, clip           │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ logical_ops.py    │ eq, ne, lt, le, gt, ge, not_, and_, or_                     │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ shape_ops.py      │ squeeze, unsqueeze, transpose, concatenate, reshape         │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ reduction_ops.py  │ sum, mean, min, max, softmax                                │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ linalg_ops.py     │ matmul, outer, im2col, col2im                               │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ activation_ops.py │ sigmoid, tanh, relu, leaky_relu, swish                      │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ stochastic_ops.py │ dropout, gaussian_noise                                     │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ index_ops.py      │ gather (advanced indexing)                                  │
+  ├───────────────────┼─────────────────────────────────────────────────────────────┤
+  │ utils.py          │ Gradient reduction, axis normalization, initializer helpers │
+  └───────────────────┴─────────────────────────────────────────────────────────────┘
+
 ### Built With
 
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.

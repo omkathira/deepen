@@ -31,12 +31,12 @@ I'm currently working on a Rust-based compiler (DeepX) with graph serialization 
 ## Framework Structure
 
 **Core Infrastructure** (core/)
-
+```
 Module: tensor.py --> Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He) <br/>
 Module: graph.py --> Computation graph builder/executor with topological sorting, forward/backward passes, graph serialization <br/>
 Module: decorators.py --> @trace (captures computation graph from a function), @grad (returns a gradient function) <br/>
 Module: context.py --> Context managers - eager() mode (for debugging), no_grad() mode (for inference) <br/>
-
+```
 **Op modules** (ops/)
   
 ewise_ops.py --> add, sub, mul, div, neg, abs, pow, exp, log, clip <br/>

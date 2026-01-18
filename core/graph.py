@@ -77,18 +77,23 @@ class Graph:
                     parent.grad += grad # accumulating gradients
     
     def _serialize_op_attr(self, value):
-        if isinstance(value, str): return {"String": value}
-        elif isinstance(value, int): return {"Int": value}
+        if isinstance(value, int): return {"Int": value}
         elif isinstance(value, float): return {"Float": value}
         elif isinstance(value, (list, tuple)):
             if all(isinstance(x, int) for x in value): return {"IntList": list(value)}
             elif all(isinstance(x, float) for x in value): return {"FloatList": list(value)}
-            else: return {"String": str(value)} # we might have None sometimes
+            raise ValueError(f"mixed types in: {value}") # in case someone does something like [1, "4"]
         elif isinstance(value, bool): return {"Bool": value}
         elif isinstance(value, str): return {"String": value}
-        else: return {"String": str(value)} # fallback to returning a string, the compiler will handle any errors
+        elif value is None: return {"String": "None"}
+        else: raise ValueError(f"unsupported op attribute type: {type(value)}")
 
-    def _serialize(self, root: Tensor, dtype="Float32"):
+    def _serialize(self, root: Tensor, sample_inputs: dict, dtype="Float32"):
+        for t, data in sample_inputs.items(): # feed sample inputs (for shape information)
+            t.data = data
+        
+        self._forward() # populate shapes for all tensors
+
         tensors_IR = {}
         inputs = []
         
@@ -101,17 +106,20 @@ class Graph:
                 else:
                     tensor_type = "Input"
                     inputs.append(t_id)
-        else:
-            tensor_type = "Intermediate"
-        
-        shape = list(t.shape) if t.data is not None else []
+            else:
+                tensor_type = "Intermediate"
+            
+            if t.data is not None:
+                shape = list(t.shape)
+            else:
+                shape = []
 
-        tensors_IR[t_id] = {
-            "id": t_id,
-            "shape": shape,
-            "requires_grad": t.requires_grad,
-            "tensor_type": tensor_type,
-        }
+            tensors_IR[t_id] = {
+                "id": t_id,
+                "shape": shape,
+                "requires_grad": t.requires_grad,
+                "tensor_type": tensor_type,
+            }
 
         output_id = id(root)
         if output_id in tensors_IR: # mark the output tensor (the loss)
@@ -127,7 +135,7 @@ class Graph:
             if t._has_no_op():
                 continue
 
-            op_name = t._op.__class__.__name__
+            op_name = t._op.__name__
             op_attrs = {}
             for k, v in (t._kwargs or {}).items():
                 op_attrs[k] = self._serialize_op_attr(v)
@@ -154,8 +162,8 @@ class Graph:
         }
 
         return json.dumps(graph, indent=2)
-
-    def compile():
+    
+    def compile(self):
         pass
 
     def run(self, feed_dict):

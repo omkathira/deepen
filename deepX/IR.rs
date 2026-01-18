@@ -23,12 +23,12 @@ enum TensorType {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 enum OpAttr {
-    String(String),
     Int(i64),
     Float(f64),
     IntList(Vec<i64>),
     FloatList(Vec<f64>),
-    Bool(bool),
+    String(String),
+    Bool(bool)
 }
 
 // Tensor IR

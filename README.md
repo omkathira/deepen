@@ -50,7 +50,8 @@ index_ops.py --> gather (advanced indexing for Transformers) <br/>
 utils.py --> gradient broadcasting, axes normalization, initializer helpers <br/>
 
 **High-Level API**
-layers.py --> neural network layers - Linear, Conv2d, Conv2dTranspose, MaxPool2d, AvgPool2d, BatchNorm1d/2d, LayerNorm1d/2d, Dropout, GaussianNoise <br/>
+
+layers.py --> neural network layers - Linear, Conv2d, Conv2dTranspose, MaxPool2d, AvgPool2d, BatchNorm1d/2d, LayerNorm1d/2d, Dropout, etc <br/>
 compose.py --> sequential container, activation wrappers, model blocks (residuals, and support for RNNs, CNNs, Transformers, etc) <br/>
 losses.py --> MSE, MAE, binary cross-entropy, cross-entropy, KL divergence (planned) <br/>
 optimizers.py --> SGD (with momentum), RMSprop, Adam, AdamW, Muon (planned) <br/>

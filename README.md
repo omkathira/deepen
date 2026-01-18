@@ -63,7 +63,7 @@ I highly recommend using `micromamba` to setup Deepen's environment. Installing 
 micromamba create -n deepen_env -c conda-forge python=3.13 numpy cupy ipykernel
 ```
 
-Once you've done that, just clone this repo to any directory you want, activate your `micromamba` environment (e.g. deepen_env, if you used the command from before), and start exploring! Further down below is an example you can copy and run immediately (paste it into a `.py` or `.ipynb` file outside deepen/). If you're using a Jupyter notebook in VSCode/Cursor, make sure your `micromamba` environment is recognized and selected.
+Once you've done that, just clone this repo in any directory you want, activate your `micromamba` environment (e.g. deepen_env, if you used the command from before), and start exploring! Further down below is an example you can copy and run immediately (paste it into a `.py` or `.ipynb` file outside deepen/). If you're using a Jupyter notebook in VSCode/Cursor, make sure your `micromamba` environment is recognized and selected.
 
 Note that, you can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages with `micromamba` (once the compiler is ready).
 

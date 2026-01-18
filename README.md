@@ -5,7 +5,7 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Deepen</h3>
+  <h1 align="center">Deepen</h1>
 
   <p align="center">
     A compilation-enabled, static-graph deep learning framework.

@@ -16,7 +16,7 @@ class Tensor:
     
     def __init__(self, data=None, requires_grad=True):
         if data is not None:
-            data = _bx.array(data)
+            data = _bx.asarray(data)
 
         if Tensor._eager_mode or Tensor._no_grad_mode:
             requires_grad = False

@@ -111,8 +111,8 @@ class BatchNorm1d(Layer):
         self.train = train
         self.epsilon = epsilon
 
-        self.running_mean = Tensor.zeros(in_feat)
-        self.running_var = Tensor.ones(in_feat)
+        self.running_mean = Tensor.zeros(in_feat, requires_grad=False)
+        self.running_var = Tensor.ones(in_feat, requires_grad=False)
 
     def forward(self, t):
         if self.train:
@@ -139,8 +139,8 @@ class BatchNorm2d(Layer):
         self.train = train
         self.epsilon = epsilon
 
-        self.running_mean = Tensor.zeros((1, in_channels, 1, 1))
-        self.running_var = Tensor.ones((1, in_channels, 1, 1))
+        self.running_mean = Tensor.zeros((1, in_channels, 1, 1), requires_grad=False)
+        self.running_var = Tensor.ones((1, in_channels, 1, 1), requires_grad=False)
 
     def forward(self, t):
         if self.train:
@@ -194,39 +194,7 @@ class Conv2d(Layer):
         return output + self.bias if self.bias is not None else output
 
 class Conv2dTranspose(Layer):
-    def __init__(self, input_shape, num_filters, kernel_size=(3, 3), stride=1, padding=1, weight_init="uniform", bias=True, bias_init="zeros"):
-        super().__init__()
-        self.C, self.H, self.W = input_shape
-        self.num_filters = num_filters
-        self.k_h, self.k_w = kernel_size
-        self.stride = stride
-        self.padding = padding
-        
-        weight_init_fn = getattr(Parameter, weight_init, None)
-        if not callable(weight_init_fn):
-            raise ValueError(f"unknown weight initializer")
-        
-        self.weights = weight_init_fn((num_filters, self.C, self.k_h, self.k_w))
-        
-        bias_init_fn = getattr(Parameter, bias_init, None)
-        if not callable(bias_init_fn):
-            raise ValueError(f"unknown bias initializer")
-        
-        self.bias = bias_init_fn((1, num_filters, 1, 1)) if bias else None
-    
-    def forward(self, t):
-        N, _, H, W = t.shape
-        
-        H_out = (H + 2 * self.padding - self.k_h) // self.stride + 1
-        W_out = (W + 2 * self.padding - self.k_w) // self.stride + 1
-        
-        col2im_output = Tensor._from_op(_col2im, t, output_shape=(N, self.C, H, W), k_h=self.k_h, k_w=self.k_w, stride=self.stride, padding=self.padding)
-        W_flat = self.weights.reshape(self.num_filters, -1)
-        
-        output = W_flat.matmul(col2im_output)
-        output = output.reshape(self.num_filters, H_out, W_out, N).transpose((3, 0, 1, 2))
-        
-        return output + self.bias if self.bias is not None else output
+    pass
 
 class MaxPool2d(Layer):
     pass

@@ -1,4 +1,4 @@
-import json
+import orjson
 from deepen.backend import active_backend as bx
 from deepen.core.tensor import Tensor
 
@@ -161,7 +161,7 @@ class Graph:
             "topo_order": topo_order,
         }
 
-        return json.dumps(graph, indent=2)
+        return orjson.dumps(graph)
     
     def compile(self):
         pass
@@ -182,7 +182,6 @@ class Graph:
 
         if root_t.requires_grad:
             root_t.grad = _bx.ones_like(root_t.data) # seed loss
-
             self._backward()
 
         return root_t

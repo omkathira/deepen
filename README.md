@@ -32,19 +32,19 @@ I'm currently working on a Rust-based compiler (DeepX) with graph serialization 
 
 Full Module Breakdown
 
-Core Infrastructure (core/)
-Module: tensor.py
-Purpose: Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)
-────────────────────────────────────────
-Module: graph.py
-Purpose: Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (upcoming)
-────────────────────────────────────────
-Module: decorators.py
-Purpose: @trace (captures computation graph from a function), @grad (returns a gradient function)
-────────────────────────────────────────
-Module: context.py
-Purpose: Context managers - eager() mode (for debugging), no_grad() mode (for inference)
-Operations Layer (ops/)
+Core Infrastructure (core/)  
+Module: tensor.py  
+Purpose: Tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)  
+────────────────────────────────────────  
+Module: graph.py  
+Purpose: Computation graph builder/executor with topological sorting, forward/backward passes, JSON serialization, Rust interop (upcoming)  
+────────────────────────────────────────  
+Module: decorators.py  
+Purpose: @trace (captures computation graph from a function), @grad (returns a gradient function)  
+────────────────────────────────────────  
+Module: context.py  
+Purpose: Context managers - eager() mode (for debugging), no_grad() mode (for inference)  
+Operations Layer (ops/)  
   ┌───────────────────┬─────────────────────────────────────────────────────────────┐
   │      Module       │                         Operations                          │
   ├───────────────────┼─────────────────────────────────────────────────────────────┤

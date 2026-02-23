@@ -31,7 +31,7 @@ enum OpAttr {
     Bool(bool)
 }
 
-// Tensor IR
+// tensor IR
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Tensor {
     id: TensorId,
@@ -40,7 +40,7 @@ struct Tensor {
     tensor_type: TensorType
 }
 
-// Node IR
+// node IR
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Node {
     id: NodeId,
@@ -50,7 +50,7 @@ struct Node {
     op_attrs: HashMap<String, OpAttr> // kwargs
 }
 
-// Graph IR
+// graph IR
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Graph {
     version: String,
@@ -61,7 +61,7 @@ struct Graph {
     topo_order: Vec<NodeId> // execution order
 }
 
-// Compilation Configuration
+// compilation configuration
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct CompilationConfig {
     dtype: DataType,

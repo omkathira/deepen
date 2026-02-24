@@ -132,6 +132,3 @@ class AdamW(Optimizer):
                 v_hat = self.v[p_id] / (1 - self.b2 ** self.t)
 
                 p.data -= self.lr * (m_hat / (_bx.sqrt(v_hat) + self.epsilon))
-
-class Muon(Optimizer):
-    pass

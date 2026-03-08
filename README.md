@@ -15,18 +15,18 @@
 <!-- ABOUT THE PROJECT -->
 ## About
 
-Deepen is a from-scratch, static-graph deep learning framework that implements automatic differentiation, computation graphs, and a complete suite of neural network primitives. Inspired mainly by PyTorch and a bit by JAX, it provides a flexible, abstracted tensor interface with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks. It also has a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), comprehensive neural network layers (Linear, Conv2d, BatchNorm, etc), popular optimizers (SGD, RMSprop, Adam, etc), and common loss functions (MSE, BCE, etc).
+Deepen is a from-scratch, static-graph deep learning framework that implements automatic differentiation, computation graphs, and a complete suite of neural network primitives. Inspired mainly by PyTorch and a bit by JAX, it provides a flexible, abstracted tensor interface with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks. It also has a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), various neural network layers (Linear, Conv2d, BatchNorm, etc), optimizers (SGD, RMSprop, Adam, etc), and common loss functions (MSE, BCE, etc).
 
-I'm currently working on a Rust-based compiler (DeepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system routes to a custom CUDA backend built using cuBLAS/cuDNN and fused CUDA kernels.
+I'm currently working on a Rust-based compiler (deepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system will route to a custom CUDA backend built using cuBLAS/cuDNN and a mini fused CUDA kernel library.
 
 ## Framework Structure
 
 **Core Infrastructure** (core/)
 ```
-tensor.py --> tensor class with autograd, gradient tracking, operator overloading, weight initializers (Xavier, He)
-graph.py --> computation graph builder/executor with topological sorting, forward/backward passes, graph serialization
+tensor.py --> tensor class with autodiff, gradient handling, tensor/weight initializers (Xavier, He)
+graph.py --> computation graph builder/executor, forward/backward passes, graph serialization
 decorators.py --> @trace (captures computation graph from a function), @grad (returns a gradient function)
-context.py --> context managers - eager() mode (for debugging), no_grad() mode (for inference)
+context.py --> eager() mode for debugging, no_grad() mode for inference
 ```
 **Op modules** (ops/)
 ```
@@ -42,10 +42,10 @@ utils.py --> gradient broadcasting, axes normalization, initializer helpers
 ```
 **High-Level API**
 ```
-layers.py --> neural network layers - Linear, Conv2d, MaxPool2d, BatchNorm1d/2d, Dropout, etc
+layers.py --> Linear, Conv2d, MaxPool2d, BatchNorm1d/2d, Dropout, etc
 compose.py --> sequential container, activation wrappers, model blocks (residuals, support for CNNs, Transformers, etc)
 losses.py --> MSE, MAE, binary cross-entropy, cross-entropy, KL divergence (planned)
-optimizers.py --> SGD (with momentum), RMSprop, Adam, AdamW, Muon (planned)
+optimizers.py --> SGD (with momentum), RMSprop, Adam, AdamW
 backend.py --> backend abstraction for NumPy/CuPy switching
 ```
 **Compiler Infrastructure** (deepX/)

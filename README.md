@@ -75,7 +75,7 @@ Of course, Deepen is still just a gentle introduction to deep learning systems a
 
 ## Example
 
-Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine curve.
+Below is a simple example that uses Deepen to train a small neural network on simulated data that follows a sine curve.
 
 ```python
 # define some mock data that follows a sine curve

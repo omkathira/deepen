@@ -65,7 +65,7 @@ micromamba create -n deepen_env -c conda-forge python=3.13 numpy cupy ipykernel
 
 Once you've done that, just clone this repo in any directory you want, activate your `micromamba` environment (e.g. deepen_env, if you used the command from before), and start exploring! Further down below is an example you can copy and run immediately (paste it into a `.py` or `.ipynb` file outside deepen/). If you're using a Jupyter notebook in VSCode/Cursor, make sure your `micromamba` environment is recognized and selected.
 
-Note that, you can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages with `micromamba` (once the compiler is ready).
+Note that, you can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages (once the compiler is ready).
 
 Deepen's goal is to be very approachable. While the lack of documentation (hopefully, not for long) makes that seem conterintuitive, the code itself is in `Python` and super readable. If you want to understand how a deep learning framework is structured - my hope is that exploring Deepen will be much easier than diving into PyTorch's source code.
 

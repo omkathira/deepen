@@ -71,11 +71,11 @@ Deepen's goal is to be very approachable. While the lack of documentation (hopef
 
 With that mindset, I've also decided to build a compiler for it in `Rust`. The goal is the same - write super readable systems code to show you the essence of how a deep learning compiler works (you might lose that guarantee from me for `CUDA` code, however). Other projects like this are usually too simple and don't teach you much. Deepen is fully-featured, supports a near-complete subset of deep learning models, and you get to see someone design and build a compiler for it in real-time.
 
-Of course, Deepen is a gentle introduction to deep learning systems and simplifies a lot of complexities you'd usually find in frameworks like PyTorch, or worse, JAX (more of a differentiable programming framework, but similar in capability). While building it, I used, and still use a super cool tool called *DeepWiki* (based on [Devin](devin.ai)). It first indexes large codebases with an LLM after which you can ask it questions of any kind. You can find [PyTorch](https://deepwiki.com/pytorch/pytorch) and [JAX](https://deepwiki.com/jax-ml/jax) already indexed. They're pretty frequently updated too!
+Of course, Deepen is a gentle introduction to deep learning systems and simplifies a lot of complexities you'd usually find in frameworks like PyTorch or JAX/Equinox. While building it, I used, and still use a super cool tool called *DeepWiki* (based on [Devin](devin.ai)). It indexes codebases from GitHub and gives you access to an LLM that you can ask questions to about them. You can find [PyTorch](https://deepwiki.com/pytorch/pytorch) already indexed (pretty frequently updated too!).
 
 ## Example
 
-Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine curve. I have an MNIST example that uses a CNN in the works.
+Below is a pretty simple example of using Deepen to train a small neural network on simulated data that follows a sine curve.
 
 ```python
 # define some mock data that follows a sine curve

@@ -10,7 +10,7 @@ def use_backend(backend):
     elif backend == "cupy":
         _current_backend = importlib.import_module("cupy")
     else:
-        raise ValueError(f"unsupported backend")
+        raise ValueError("unsupported backend")
 
 def active_backend():
     if _current_backend is None:
@@ -19,5 +19,5 @@ def active_backend():
         except ImportError:
             print("CuPy not available, using NumPy")
             use_backend("numpy")
-            
+
     return _current_backend

@@ -29,9 +29,9 @@ class Graph:
     def _traverse(self, t: Tensor, visited):
         if id(t) in visited:
             return
-        
+
         visited.add(id(t))
-        
+
         for parent in t._parents:
             self._traverse(parent, visited)
 
@@ -54,7 +54,7 @@ class Graph:
                 buffer = _bx.zeros_like(t.data)
                 self._grad_buffers[t_id] = buffer
                 t.grad = buffer
-        
+
         self._grad_buffers_allocated = True
 
     def _zero_grads(self):
@@ -72,7 +72,7 @@ class Graph:
 
             if t._has_no_op():
                 continue
-            
+
             args = [arg.data if is_tensor else arg for is_tensor, arg in t._args] # rebuild positional arguments
 
             t.data = t._op.forward(t._save, *args, **t._kwargs)
@@ -93,7 +93,7 @@ class Graph:
                     parent.grad = grad
                 else: # accumulating gradients
                     parent.grad += grad
-    
+
     def _serialize_op_attr(self, value):
         if isinstance(value, int): return {"Int": value}
         elif isinstance(value, float): return {"Float": value}
@@ -109,12 +109,12 @@ class Graph:
     def _serialize(self, root: Tensor, sample_inputs: dict, dtype="Float32"):
         for t, data in sample_inputs.items(): # feed sample inputs (for shape information)
             t.data = data
-        
+
         self._forward() # populate shapes for all tensors
 
         tensors_IR = {}
         inputs = []
-        
+
         for t_id, node in self._nodes.items():
             t = node.tensor
 
@@ -126,7 +126,7 @@ class Graph:
                     inputs.append(t_id)
             else:
                 tensor_type = "Intermediate"
-            
+
             if t.data is not None:
                 shape = list(t.shape)
             else:
@@ -142,7 +142,7 @@ class Graph:
         output_id = id(root)
         if output_id in tensors_IR: # mark the output tensor (the loss)
             tensors_IR[output_id]["tensor_type"] = "Output"
-        
+
         nodes_IR = []
         node_id = 0
         topo_order = []
@@ -157,7 +157,7 @@ class Graph:
             op_attrs = {}
             for k, v in (t._kwargs or {}).items():
                 op_attrs[k] = self._serialize_op_attr(v)
-            
+
             node_IR = {
                 "id": node_id,
                 "inputs": [id(p) for p in t._parents],
@@ -169,7 +169,7 @@ class Graph:
             nodes_IR.append(node_IR)
             topo_order.append(node_id)
             node_id += 1
-        
+
         graph = {
             "version": "1.0",
             "tensors": tensors_IR,
@@ -180,7 +180,7 @@ class Graph:
         }
 
         return orjson.dumps(graph)
-    
+
     def compile(self):
         pass
 

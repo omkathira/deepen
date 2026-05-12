@@ -8,7 +8,7 @@ class Sequential(Layer):
 
         for i, layer in enumerate(layers):
             setattr(self, f'layer_{i}', layer)
-    
+
     def forward(self, x):
         for layer in self.layers:
             x = layer(x)
@@ -20,7 +20,7 @@ class Activation(Layer):
         super().__init__()
         self.activation_func = getattr(Tensor, activation_name)
         self.kwargs = kwargs
-    
+
     def forward(self, x):
         return self.activation_func(x, **self.kwargs)
 

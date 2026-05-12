@@ -9,12 +9,12 @@ class Layer:
     def __init__(self):
         self._layers = {}
         self._parameters = {}
-        self._is_block = False # 
+        self._is_block = False #
 
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
 
-    def __setattr__(self, name, value): 
+    def __setattr__(self, name, value):
         if isinstance(value, Layer): # register layers
             self._layers[name] = value
         elif isinstance(value, Parameter): # register parameters
@@ -33,14 +33,14 @@ class Linear(Layer):
         super().__init__()
         weight_init_fn = getattr(Parameter, weight_init, None)
         if not callable(weight_init_fn):
-            raise ValueError(f"unknown weight initializer")
-        
+            raise ValueError("unknown weight initializer")
+
         self.weights = weight_init_fn((in_feat, out_feat))
 
         bias_init_fn = getattr(Parameter, bias_init, None)
         if not callable(bias_init_fn):
-            raise ValueError(f"unknown bias initializer")
-        
+            raise ValueError("unknown bias initializer")
+
         self.bias = bias_init_fn((1, out_feat)) if bias else None
 
     def forward(self, t):
@@ -54,7 +54,7 @@ class Dropout(Layer):
             raise ValueError("invalid dropout probability")
         self.p = p
         self.train = train
-    
+
     def forward(self, t):
         if self.p == 0.0 or not self.train:
             return t
@@ -67,7 +67,7 @@ class GaussianNoise(Layer):
         self.mean = mean
         self.std = std
         self.train = train
-    
+
     def forward(self, t):
         if self.std == 0.0 or not self.train:
             return t
@@ -118,10 +118,10 @@ class BatchNorm1d(Layer):
         if self.train:
             mean = t.mean(axes=0)
             var = ((t - mean) ** 2).mean(axes=0)
-            
+
             self.running_mean = (1 - self.momentum) * self.running_mean + self.momentum * mean
             self.running_var = (1 - self.momentum) * self.running_var + self.momentum * var
-            
+
             norm = (t - mean) / (var + self.epsilon) ** 0.5
         else:
             norm = (t - self.running_mean) / (self.running_var + self.epsilon) ** 0.5
@@ -169,16 +169,16 @@ class Conv2d(Layer):
 
         weight_init_fn = getattr(Parameter, weight_init, None)
         if not callable(weight_init_fn):
-            raise ValueError(f"unknown weight initializer")
-        
+            raise ValueError("unknown weight initializer")
+
         self.weights = weight_init_fn((num_filters, self.C, self.k_h, self.k_w))
 
         bias_init_fn = getattr(Parameter, bias_init, None)
         if not callable(bias_init_fn):
-            raise ValueError(f"unknown bias initializer")
-        
+            raise ValueError("unknown bias initializer")
+
         self.bias = bias_init_fn((1, num_filters, 1, 1)) if bias else None
-    
+
     def forward(self, t):
         N, _, H, W = t.shape
 
@@ -211,9 +211,9 @@ class AvgPool2d(Layer):
 #         weight_init_fn = getattr(Parameter, weight_init, None)
 #         if not callable(weight_init_fn):
 #             raise ValueError(f"unknown weight initializer")
-        
+
 #         self.weights = weight_init_fn((vocab_size, latent_feat))
-    
+
 #     def forward(self, t):
 #         return self.weights.gather(t)
 
@@ -223,7 +223,7 @@ class AvgPool2d(Layer):
 #         self.seq_len = seq_len
 #         self.latent_feat = latent_feat
 
-        
+
 
 # class MultiHeadAttention(Layer):
 #     def __init__(self, in_feat, latent_feat, num_heads=4):

@@ -17,7 +17,7 @@
 
 Deepen is a from-scratch, static-graph deep learning framework that implements automatic differentiation, computation graphs, and a complete suite of neural network primitives. Inspired mainly by PyTorch and a bit by JAX, it provides a flexible, abstracted tensor interface with dual execution modes - lazy graph building by default and eager execution for debugging - along with a full reverse-mode autodiff system for training neural networks. It also has a pluggable backend system supporting both NumPy (CPU) and CuPy (GPU), various neural network layers (Linear, Conv2d, BatchNorm, etc), optimizers (SGD, RMSprop, Adam, etc), and common loss functions (MSE, BCE, etc).
 
-I'm currently working on a Rust-based compiler (deepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system will route to a custom CUDA backend built using cuBLAS/cuDNN and a mini fused CUDA kernel library.
+I'm currently working on a Triton-based compiler (deepX) with graph serialization to an SSA-based IR for model compilation. The compiler is primarily focused on implementing graph-level optimization passes (DCE, CSE, etc) and operator fusion. This system will route to a custom CUDA backend built using cuBLAS/cuDNN and a mini fused CUDA kernel library with Triton.
 
 ## Framework Structure
 
@@ -50,8 +50,8 @@ backend.py --> backend abstraction for NumPy/CuPy switching
 ```
 **Compiler Infrastructure** (deepX/)
 ```
-IR.rs --> rust IR definitions - Tensor, Node, Graph structs, etc
-compiler.rs --> compiler implementation (in progress)
+IR.cpp --> C++ IR definitions - Tensor, Node, Graph structs, etc
+compiler.cpp --> compiler implementation (in progress)
 cuda/ --> cuBLAS/cuDNN and fused CUDA kernel backend (in progress)
 ```
 <!-- GETTING STARTED -->
@@ -65,11 +65,9 @@ micromamba create -n deepen_env -c conda-forge python=3.13 numpy cupy ipykernel
 
 Once you've done that, just clone this repo in any directory you want, activate your `micromamba` environment (e.g. deepen_env, if you used the command from before), and start exploring! Way down below is an example you can copy and run fairly quickly (paste it into a `.py` or `.ipynb` file outside deepen/, I'm setting up an examples folder soon!). If you're using a Jupyter notebook in VSCode/Cursor, make sure your `micromamba` environment is recognizable.
 
-You can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `rust`, `cuda-toolkit`, and their related packages (once the compiler is ready).
+You can pick between installing either `NumPy` or `CuPy`. The last package, `ipykernel` is generally useful as it lets you run code in Jupyter-style notebooks in VSCode/Cursor. Eventually, I'll update this to include instructions on how to setup `Triton`, `cuda-toolkit`, and their related packages (once the compiler is ready).
 
-Deepen's goal is to be very approachable. While the lack of documentation makes that seem conterintuitive, the code itself is meant to be super readable. If you want to understand how a deep learning framework is structured - my hope is that exploring Deepen will be much easier than diving head-first into PyTorch's internals.
-
-With that in mind, I've also decided to build a compiler for it in `Rust`. Same goal - write super readable systems code to show you how a deep learning compiler works. Other projects like this are usually too simple and don't teach you much. Deepen is fully-featured, supports a near-complete subset of deep learning models, and that lets me design + build a compiler for it.
+Deepen's goal is to be very approachable. While the lack of documentation makes that seem conterintuitive, the code itself is meant to be super readable. If you want to understand how a deep learning framework is structured - my hope is that exploring Deepen will be much easier than diving head-first into PyTorch internals.
 
 Of course, Deepen is still just a gentle introduction to deep learning systems and simplifies a lot of stuff you'd usually find in frameworks like PyTorch or JAX/Equinox. While building it, I used, and still use a super cool tool called DeepWiki (based on [Devin](devin.ai)). It indexes codebases from GitHub and gives you access to an LLM with that context stored. You can find [PyTorch](https://deepwiki.com/pytorch/pytorch) already indexed (pretty frequently updated too!).
 
